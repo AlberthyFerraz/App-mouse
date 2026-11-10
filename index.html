@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mestre da Informática - Mouse e Digitação</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Fira+Code:wght@500;700&display=swap');
+        
+        body {
+            font-family: 'Fredoka', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 8px;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .animate-pulse-ring {
+            animation: pulse-ring 1.5s infinite ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        .drag-over {
+            border-color: #3b82f6 !important;
+            background-color: #eff6ff !important;
+            transform: scale(1.03);
+        }
+
+        .key-active {
+            background-color: #3b82f6 !important;
+            color: white !important;
+            transform: translateY(2px);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2) !important;
+        }
+
+        .key-target {
+            background-color: #f59e0b !important;
+            color: white !important;
+            animation: pulse-ring 1s infinite ease-in-out;
+        }
+
+        .tab-close-btn:hover {
+            background-color: #ef4444;
+            color: white;
+        }
+
+        /* Canvas paint styles */
+        #paint-canvas {
+            touch-action: none;
+            cursor: crosshair;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between overflow-x-hidden">
+
+    <!-- Header Navigation & Info -->
+    <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+            
+            <!-- Logo & Module Tabs -->
+            <div class="flex items-center gap-4">
+                <div class="bg-white/20 p-2.5 rounded-2xl flex items-center justify-center">
+                    <i id="app-logo-icon" class="fa-solid fa-laptop text-2xl text-yellow-300"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold tracking-wide">Mestre da Informática</h1>
+                    <p class="text-xs text-indigo-200">Curso Prático para Turmas de Informática Básica</p>
+                </div>
+            </div>
+
+            <!-- Module Switchers -->
+            <div class="flex items-center bg-indigo-800/60 p-1.5 rounded-2xl border border-indigo-500/30">
+                <button id="mod1-tab-btn" onclick="app.switchToModule(1)" class="px-4 py-2 rounded-xl font-bold text-xs md:text-sm transition flex items-center gap-2 bg-white text-indigo-900 shadow-sm">
+                    <i class="fa-solid fa-computer-mouse text-amber-500"></i> Módulo 1: Mouse
+                </button>
+                <button id="mod2-tab-btn" onclick="app.switchToModule(2)" class="px-4 py-2 rounded-xl font-bold text-xs md:text-sm transition flex items-center gap-2 text-indigo-200 hover:text-white relative opacity-70">
+                    <i id="mod2-lock-icon" class="fa-solid fa-lock text-yellow-400"></i>
+                    <span>Módulo 2: Digitação</span>
+                </button>
+            </div>
+
+            <!-- Global Stats Display -->
+            <div class="flex items-center gap-3 bg-indigo-700/70 px-4 py-2 rounded-xl text-xs md:text-sm border border-indigo-500/30">
+                <div class="flex items-center gap-1.5" title="Tempo no nível atual">
+                    <i class="fa-regular fa-clock text-yellow-300"></i>
+                    <span id="timer-display" class="font-mono font-bold">00:00</span>
+                </div>
+                <div class="h-4 w-px bg-indigo-400/40"></div>
+                <div id="wpm-stat-box" class="hidden flex items-center gap-1.5" title="Palavras Por Minuto (WPM)">
+                    <i class="fa-solid fa-bolt text-amber-300"></i>
+                    <span id="wpm-display" class="font-bold">0 WPM</span>
+                    <div class="h-4 w-px bg-indigo-400/40 ml-1"></div>
+                </div>
+                <div class="flex items-center gap-1.5" title="Acertos Totais">
+                    <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                    <span id="score-display" class="font-bold">0</span>
+                </div>
+                <div class="h-4 w-px bg-indigo-400/40"></div>
+                <div class="flex items-center gap-1.5" title="Erros Registrados">
+                    <i class="fa-solid fa-circle-xmark text-rose-400"></i>
+                    <span id="errors-display" class="font-bold">0</span>
+                </div>
+                <div class="h-4 w-px bg-indigo-400/40"></div>
+                <div class="flex items-center gap-1.5" title="Precisão de Ações">
+                    <i class="fa-solid fa-bullseye text-amber-300"></i>
+                    <span id="accuracy-display" class="font-bold">100%</span>
+                </div>
+            </div>
+
+            <!-- Controls (Restart & Levels) -->
+            <div class="flex items-center gap-2">
+                <button onclick="app.restartLevel()" class="bg-indigo-500 hover:bg-indigo-400 text-white px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-rotate-right"></i> Reiniciar
+                </button>
+                <div class="relative">
+                    <select id="level-select" onchange="app.changeLevel(this.value)" class="bg-white text-indigo-900 font-semibold px-3 py-2 pr-8 rounded-lg text-xs shadow-sm border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-yellow-400 cursor-pointer">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <button onclick="app.teacherUnlockToggle()" title="Atalho do Professor: Desbloquear Módulo 2" class="bg-indigo-800 hover:bg-indigo-900 text-indigo-200 hover:text-white px-2.5 py-2 rounded-lg text-xs transition border border-indigo-500/40">
+                    <i class="fa-solid fa-key"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Level Progress Bar -->
+        <div class="w-full bg-indigo-950/40 h-2">
+            <div id="level-progress-bar" class="bg-yellow-400 h-2 transition-all duration-300" style="width: 0%"></div>
+        </div>
+    </header>
+
+    <!-- Main Active Workspace -->
+    <main class="max-w-7xl mx-auto w-full flex-1 p-4 md:p-6 flex flex-col gap-4">
+
+        <!-- Instruction Banner -->
+        <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4 relative overflow-hidden">
+            <div class="flex items-start gap-3.5 z-10">
+                <div id="instruction-icon-bg" class="p-3 bg-indigo-100 rounded-2xl text-indigo-600 text-2xl flex items-center justify-center min-w-[50px] min-h-[50px]">
+                    <i id="instruction-icon" class="fa-solid fa-hand-pointer"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span id="level-badge" class="bg-indigo-100 text-indigo-700 text-xs font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">Módulo 1 - Nível 1</span>
+                        <h2 id="level-title" class="text-lg md:text-xl font-bold text-slate-800">Carregando exercício...</h2>
+                    </div>
+                    <p id="level-instruction" class="text-slate-600 text-sm md:text-base mt-1 font-medium">Siga as instruções para avançar.</p>
+                </div>
+            </div>
+
+            <!-- Target Progress & Next Button -->
+            <div class="flex items-center gap-3 z-10 w-full md:w-auto justify-end">
+                <div class="text-right">
+                    <span class="text-xs text-slate-400 font-semibold uppercase block">Meta do Nível</span>
+                    <span id="target-count-display" class="text-lg font-bold text-indigo-600">0 / 0</span>
+                </div>
+                <button id="next-level-btn" onclick="app.nextLevel()" class="hidden bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition shadow-md flex items-center gap-2 animate-bounce">
+                    Próxima Fase <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Interactive Playground / Typing Box -->
+        <div id="workspace" class="bg-white rounded-2xl shadow-sm border border-slate-200 flex-1 min-h-[460px] relative overflow-hidden flex flex-col items-center justify-center p-4">
+            
+            <div id="interactive-area" class="w-full h-full relative flex flex-col items-center justify-center">
+                <!-- Dynamically rendered UI for active level -->
+            </div>
+
+            <!-- Custom Right Click Context Menu Simulator -->
+            <div id="custom-context-menu" class="hidden absolute bg-white rounded-xl shadow-xl border border-slate-200 py-2 w-52 z-50 transition-all text-sm font-semibold text-slate-700">
+                <div class="px-3 py-1.5 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 mb-1">Menu de Opções</div>
+                <button onclick="app.handleContextMenuSelection('copiar')" class="w-full text-left px-4 py-2 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2.5">
+                    <i class="fa-solid fa-copy text-blue-500"></i> Copiar
+                </button>
+                <button onclick="app.handleContextMenuSelection('colar')" class="w-full text-left px-4 py-2 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2.5">
+                    <i class="fa-solid fa-paste text-emerald-500"></i> Colar
+                </button>
+                <button onclick="app.handleContextMenuSelection('excluir')" class="w-full text-left px-4 py-2 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2.5 border-t border-slate-100 text-rose-600 hover:text-rose-700">
+                    <i class="fa-solid fa-trash text-rose-500"></i> Excluir para Lixeira
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Completion Modal for Levels -->
+    <div id="completion-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-md w-full p-6 text-center">
+            <div class="w-20 h-20 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-4 shadow-inner">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-slate-800">Parabéns! Fase Concluída!</h3>
+            <p id="modal-subtitle" class="text-slate-500 text-sm mt-1">Você concluiu com sucesso este exercício.</p>
+            
+            <div class="bg-slate-50 rounded-2xl p-4 my-5 grid grid-cols-2 gap-3 text-left border border-slate-200">
+                <div>
+                    <span class="text-xs text-slate-400 font-bold uppercase block">Tempo Gasto</span>
+                    <span id="modal-time" class="text-lg font-bold text-slate-700">00:15</span>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-400 font-bold uppercase block">Erros no Nível</span>
+                    <span id="modal-errors" class="text-lg font-bold text-slate-700">0</span>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="app.restartLevel(); app.hideModal();" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl text-sm transition">
+                    Repetir Fase
+                </button>
+                <button id="modal-next-btn" onclick="app.nextLevel(); app.hideModal();" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl text-sm shadow-lg shadow-indigo-200 transition">
+                    Avançar <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Final Certificate Modal (All Modules Completed) -->
+    <div id="certificate-modal" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl shadow-2xl border-4 border-yellow-400 max-w-2xl w-full p-6 md:p-8 text-center my-8 relative">
+            <div class="absolute top-4 right-4 text-yellow-500 text-3xl">
+                <i class="fa-solid fa-certificate"></i>
+            </div>
+            
+            <div class="w-20 h-20 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-3">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+
+            <h2 class="text-2xl md:text-3xl font-extrabold text-indigo-900 uppercase tracking-wide">Certificado de Conclusão</h2>
+            <p class="text-slate-500 text-sm mt-1">Curso de Informática Básica • Módulos de Mouse e Digitação</p>
+
+            <div class="my-6 p-6 bg-indigo-50/60 rounded-2xl border border-indigo-100 text-slate-700">
+                <p class="text-base md:text-lg font-medium">Parabéns! Você demonstrou excelente domínio das ferramentas essenciais da informática!</p>
+                <div class="flex flex-wrap justify-center gap-2 my-4 text-xs font-bold text-indigo-700">
+                    <span class="bg-white px-3 py-1.5 rounded-full border border-indigo-200">✓ Mouse: Cliques e Arrastes</span>
+                    <span class="bg-white px-3 py-1.5 rounded-full border border-indigo-200">✓ Mouse: Roda de Rolagem & Menus</span>
+                    <span class="bg-white px-3 py-1.5 rounded-full border border-indigo-200">✓ Digitação: Posição de Mãos</span>
+                    <span class="bg-white px-3 py-1.5 rounded-full border border-indigo-200">✓ Digitação: Acentuação e Maiúsculas</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 mb-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <div>
+                    <span class="text-xs text-slate-400 font-bold uppercase block">Pontuação Total</span>
+                    <span id="cert-score" class="text-xl font-bold text-emerald-600">0</span>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-400 font-bold uppercase block">Erros Totais</span>
+                    <span id="cert-errors" class="text-xl font-bold text-rose-500">0</span>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-400 font-bold uppercase block">Precisão Geral</span>
+                    <span id="cert-accuracy" class="text-xl font-bold text-indigo-600">100%</span>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-3">
+                <button onclick="app.switchToModule(1); app.loadLevel(0); app.hideCertificate();" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-xl text-sm shadow-lg shadow-indigo-200 transition">
+                    <i class="fa-solid fa-rotate-left mr-2"></i> Reiniciar Curso do Zero
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Web Audio API Sound Synthesizer
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+
+            playSuccess() {
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.12); // G5
+
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.2);
+            }
+
+            playKeyTap() {
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(200, now + 0.05);
+
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.05);
+            }
+
+            playError() {
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.linearRampToValueAtTime(110, now + 0.2);
+
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.2);
+            }
+
+            playFanfare() {
+                this.init();
+                if (!this.ctx) return;
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, index) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    const now = this.ctx.currentTime + (index * 0.08);
+
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now);
+
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                });
+            }
+        }
+
+        const sound = new SoundEngine();
+
+        class ComputerSkillsApp {
+            constructor() {
+                this.currentModule = 1;
+                this.module2Unlocked = false;
+                this.currentLevelIndex = 0;
+                this.score = 0;
+                this.errors = 0;
+                this.levelScore = 0;
+                this.requiredScore = 0;
+                this.timerSeconds = 0;
+                this.timerInterval = null;
+                this.movingInterval = null;
+                this.activeContextMenuTarget = null;
+
+                // Typing stats
+                this.typingTotalTypedChars = 0;
+                this.typingStartTime = null;
+
+                // Module 1: Mouse Mastery (15 Levels)
+                this.mouseLevels = [
+                    { id: 1, title: 'Clique Simples', instruction: 'Clique com o BOTÃO ESQUERDO no botão de alvo.', icon: 'fa-hand-pointer', required: 3, render: () => this.renderMouseL1() },
+                    { id: 2, title: 'Precisão de Clique', instruction: 'Clique nos alvos menores conforme surgirem na tela.', icon: 'fa-bullseye', required: 5, render: () => this.renderMouseL2() },
+                    { id: 3, title: 'Clique Duplo (Abre Pastas)', instruction: 'Dê DOIS CLIQUES RÁPIDOS com o botão esquerdo nas pastas.', icon: 'fa-folder-open', required: 3, render: () => this.renderMouseL3() },
+                    { id: 4, title: 'Botão Direito do Mouse', instruction: 'Clique com o BOTÃO DIREITO do mouse nos elementos.', icon: 'fa-mouse-pointer', required: 3, render: () => this.renderMouseL4() },
+                    { id: 5, title: 'Arrastar e Soltar na Lixeira', instruction: 'Clique, segure e ARRASTE o arquivo para a lixeira.', icon: 'fa-arrows-up-down-left-right', required: 3, render: () => this.renderMouseL5() },
+                    { id: 6, title: 'Roda de Rolagem (Scroll)', instruction: 'Role a página com a RODA DO MOUSE até achar o botão.', icon: 'fa-arrows-up-down', required: 3, render: () => this.renderMouseL6() },
+                    { id: 7, title: 'Clique do Meio (Scroll Click)', instruction: 'Aperte a RODA DO MOUSE (Botão do Meio) em cima de cada aba.', icon: 'fa-window-restore', required: 4, render: () => this.renderMouseL7() },
+                    { id: 8, title: 'Alvos em Movimento', instruction: 'Mova o mouse e clique no alvo enquanto ele flutua.', icon: 'fa-person-running', required: 5, render: () => this.renderMouseL8() },
+                    { id: 9, title: 'Seleção Retangular por Arraste', instruction: 'Clique e arraste uma caixa de seleção azul cobrindo as bolinhas.', icon: 'fa-vector-square', required: 3, render: () => this.renderMouseL9() },
+                    { id: 10, title: 'Pintura Continuada por Arraste', instruction: 'Segure o clique e passe o pincel para cobrir a área de pintura.', icon: 'fa-paintbrush', required: 1, render: () => this.renderMouseL10() },
+                    { id: 11, title: 'Rolagem de Zoom em Caixa', instruction: 'Role a roda dentro do quadro para ajustar o zoom em 100%.', icon: 'fa-magnifying-glass-plus', required: 3, render: () => this.renderMouseL11() },
+                    { id: 12, title: 'Organização de Arquivos em Pastas', instruction: 'Arraste cada arquivo para a sua pasta correspondente.', icon: 'fa-boxes-packing', required: 4, render: () => this.renderMouseL12() },
+                    { id: 13, title: 'Menu de Contexto: Copiar e Colar', instruction: 'Clique com o botão direito -> "Copiar" e depois no quadro -> "Colar".', icon: 'fa-copy', required: 3, render: () => this.renderMouseL13() },
+                    { id: 14, title: 'Encaixe de Precisão em Alvo', instruction: 'Arraste a peça e solte exatamente no centro do alvo.', icon: 'fa-crosshairs', required: 3, render: () => this.renderMouseL14() },
+                    { id: 15, title: 'Desafio Final do Mouse', instruction: 'Siga a instrução sorteada para cada caixa e complete o módulo!', icon: 'fa-award', required: 5, render: () => this.renderMouseL15() }
+                ];
+
+                // Module 2: Typing Mastery / Digitação (10 Levels)
+                this.typingLevels = [
+                    { id: 1, title: 'Teclas Guia - Mão Esquerda', instruction: 'Mantenha os dedos da mão esquerda sobre: a s d f e pressione com o polegar o espaço.', icon: 'fa-keyboard', text: 'asdf asdf fda asdf a s d f asdf', render: () => this.renderTypingLevel() },
+                    { id: 2, title: 'Teclas Guia - Mão Direita', instruction: 'Posicione a mão direita em: j k l ç e use o espaço.', icon: 'fa-keyboard', text: 'jklç jklç çlkj j k l ç jklç', render: () => this.renderTypingLevel() },
+                    { id: 3, title: 'Linha Central Completa', instruction: 'Combine as duas mãos na linha central (a s d f g h j k l ç).', icon: 'fa-keyboard', text: 'asdfg hjklç fghj asdf jklç', render: () => this.renderTypingLevel() },
+                    { id: 4, title: 'Linha Superior de Teclas', instruction: 'Alcance as teclas da linha de cima (q w e r t y u i o p).', icon: 'fa-keyboard', text: 'qwer tyui op qwer topo teia ruptura', render: () => this.renderTypingLevel() },
+                    { id: 5, title: 'Linha Inferior de Teclas', instruction: 'Pratique a linha inferior (z x c v b n m , .).', icon: 'fa-keyboard', text: 'zxcv bnm zxcv bom vocal canal', render: () => this.renderTypingLevel() },
+                    { id: 6, title: 'Números e Símbolos', instruction: 'Digite números na linha superior e símbolos básicos.', icon: 'fa-hashtag', text: '123 456 789 0123-4567 100%', render: () => this.renderTypingLevel() },
+                    { id: 7, title: 'Uso de Maiúsculas com SHIFT', instruction: 'Segure SHIFT para digitar letras maiúsculas no início das palavras.', icon: 'fa-arrow-up-z-a', text: 'Brasil Informatica Teclado Mouse Curitiba', render: () => this.renderTypingLevel() },
+                    { id: 8, title: 'Palavras Frequentes e Acentos', instruction: 'Digite palavras do vocabulário técnico com acentuação.', icon: 'fa-font', text: 'computador arquivo digitação memória tela lição', render: () => this.renderTypingLevel() },
+                    { id: 9, title: 'Frases do Dia a Dia', instruction: 'Digite frases completas com pontuação.', icon: 'fa-align-left', text: 'O computador é uma ferramenta útil para o estudo.', render: () => this.renderTypingLevel() },
+                    { id: 10, title: 'Avaliador de Velocidade e Precisão', instruction: 'Digite o texto continuo o mais rápido e preciso possível!', icon: 'fa-trophy', text: 'A informática básica abre portas para o futuro. Praticar o uso do mouse e a digitação correta torna o trabalho rápido e agradável.', render: () => this.renderTypingLevel() }
+                ];
+            }
+
+            init() {
+                this.setupGlobalKeyboardEvents();
+                this.setupGlobalMouseEvents();
+                this.switchToModule(1);
+            }
+
+            getActiveLevels() {
+                return this.currentModule === 1 ? this.mouseLevels : this.typingLevels;
+            }
+
+            switchToModule(modNum) {
+                if (modNum === 2 && !this.module2Unlocked) {
+                    sound.playError();
+                    alert("🔒 O Módulo 2 (Digitação) só é liberado após concluir todas as 15 fases do Módulo 1 do Mouse!");
+                    return;
+                }
+
+                this.currentModule = modNum;
+                this.currentLevelIndex = 0;
+
+                // Update Tabs UI
+                const btn1 = document.getElementById('mod1-tab-btn');
+                const btn2 = document.getElementById('mod2-tab-btn');
+                const logoIcon = document.getElementById('app-logo-icon');
+                const wpmStatBox = document.getElementById('wpm-stat-box');
+
+                if (modNum === 1) {
+                    btn1.className = "px-4 py-2 rounded-xl font-bold text-xs md:text-sm transition flex items-center gap-2 bg-white text-indigo-900 shadow-sm";
+                    btn2.className = `px-4 py-2 rounded-xl font-bold text-xs md:text-sm transition flex items-center gap-2 text-indigo-200 hover:text-white ${!this.module2Unlocked ? 'opacity-70' : ''}`;
+                    logoIcon.className = "fa-solid fa-computer-mouse text-2xl text-yellow-300";
+                    wpmStatBox.classList.add('hidden');
+                } else {
+                    btn2.className = "px-4 py-2 rounded-xl font-bold text-xs md:text-sm transition flex items-center gap-2 bg-white text-indigo-900 shadow-sm";
+                    btn1.className = "px-4 py-2 rounded-xl font-bold text-xs md:text-sm transition flex items-center gap-2 text-indigo-200 hover:text-white";
+                    logoIcon.className = "fa-solid fa-keyboard text-2xl text-yellow-300";
+                    wpmStatBox.classList.remove('hidden');
+                }
+
+                this.populateLevelDropdown();
+                this.loadLevel(0);
+            }
+
+            unlockModule2() {
+                this.module2Unlocked = true;
+                const lockIcon = document.getElementById('mod2-lock-icon');
+                if (lockIcon) {
+                    lockIcon.className = "fa-solid fa-unlock text-emerald-400";
+                }
+                const btn2 = document.getElementById('mod2-tab-btn');
+                btn2.classList.remove('opacity-70');
+            }
+
+            teacherUnlockToggle() {
+                this.unlockModule2();
+                sound.playFanfare();
+                alert("🔑 Professor: Módulo 2 de Digitação Desbloqueado com sucesso!");
+                this.switchToModule(2);
+            }
+
+            populateLevelDropdown() {
+                const select = document.getElementById('level-select');
+                select.innerHTML = '';
+                const levels = this.getActiveLevels();
+                levels.forEach((lvl, idx) => {
+                    const opt = document.createElement('option');
+                    opt.value = idx;
+                    opt.textContent = `Fase ${lvl.id}: ${lvl.title}`;
+                    select.appendChild(opt);
+                });
+            }
+
+            setupGlobalMouseEvents() {
+                const workspace = document.getElementById('workspace');
+                workspace.addEventListener('contextmenu', (e) => e.preventDefault());
+                workspace.addEventListener('mousedown', (e) => {
+                    if (e.button === 1) e.preventDefault();
+                });
+
+                document.addEventListener('click', (e) => {
+                    const menu = document.getElementById('custom-context-menu');
+                    if (menu && !menu.contains(e.target)) {
+                        this.hideContextMenu();
+                    }
+                });
+            }
+
+            setupGlobalKeyboardEvents() {
+                document.addEventListener('keydown', (e) => {
+                    if (this.currentModule === 2) {
+                        this.handleTypingKeyPress(e);
+                    }
+                });
+
+                document.addEventListener('keyup', (e) => {
+                    if (this.currentModule === 2) {
+                        this.highlightVirtualKey(e.key.toLowerCase(), false);
+                    }
+                });
+            }
+
+            startTimer() {
+                this.stopTimer();
+                this.timerSeconds = 0;
+                this.updateTimerDisplay();
+                this.timerInterval = setInterval(() => {
+                    this.timerSeconds++;
+                    this.updateTimerDisplay();
+                    if (this.currentModule === 2) {
+                        this.calculateWPM();
+                    }
+                }, 1000);
+            }
+
+            stopTimer() {
+                if (this.timerInterval) {
+                    clearInterval(this.timerInterval);
+                    this.timerInterval = null;
+                }
+            }
+
+            updateTimerDisplay() {
+                const mins = Math.floor(this.timerSeconds / 60).toString().padStart(2, '0');
+                const secs = (this.timerSeconds % 60).toString().padStart(2, '0');
+                document.getElementById('timer-display').textContent = `${mins}:${secs}`;
+            }
+
+            calculateWPM() {
+                if (this.timerSeconds <= 0) return;
+                const minutes = this.timerSeconds / 60;
+                const words = this.typingTotalTypedChars / 5;
+                const wpm = Math.round(words / minutes);
+                document.getElementById('wpm-display').textContent = `${wpm} WPM`;
+            }
+
+            loadLevel(index) {
+                if (this.movingInterval) clearInterval(this.movingInterval);
+                this.currentLevelIndex = index;
+                this.levelScore = 0;
+                this.activeContextMenuTarget = null;
+                this.hideContextMenu();
+
+                const levels = this.getActiveLevels();
+                const level = levels[index];
+                
+                if (this.currentModule === 2) {
+                    this.requiredScore = level.text.length;
+                    this.typingTotalTypedChars = 0;
+                } else {
+                    this.requiredScore = level.required;
+                }
+
+                // Update Banner Info
+                document.getElementById('level-select').value = index;
+                document.getElementById('level-badge').textContent = `Módulo ${this.currentModule} - Nível ${level.id}`;
+                document.getElementById('level-title').textContent = level.title;
+                document.getElementById('level-instruction').textContent = level.instruction;
+                document.getElementById('instruction-icon').className = `fa-solid ${level.icon}`;
+                
+                document.getElementById('next-level-btn').classList.add('hidden');
+                this.updateProgressUI();
+                this.startTimer();
+
+                // Clear Workspace & Render Level
+                const area = document.getElementById('interactive-area');
+                area.innerHTML = '';
+                level.render();
+            }
+
+            restartLevel() {
+                this.loadLevel(this.currentLevelIndex);
+            }
+
+            changeLevel(idx) {
+                this.loadLevel(parseInt(idx, 10));
+            }
+
+            nextLevel() {
+                const levels = this.getActiveLevels();
+                if (this.currentLevelIndex < levels.length - 1) {
+                    this.loadLevel(this.currentLevelIndex + 1);
+                } else {
+                    if (this.currentModule === 1) {
+                        this.unlockModule2();
+                        sound.playFanfare();
+                        if (typeof confetti === 'function') confetti({ particleCount: 120, spread: 80 });
+                        alert("🎉 PARABÉNS! Você concluiu o Módulo do Mouse! O Módulo 2 de DIGITAÇÃO foi desbloqueado!");
+                        this.switchToModule(2);
+                    } else {
+                        this.showCertificate();
+                    }
+                }
+            }
+
+            addHit() {
+                this.score++;
+                this.levelScore++;
+                sound.playSuccess();
+                this.updateProgressUI();
+
+                if (this.levelScore >= this.requiredScore) {
+                    this.completeLevel();
+                }
+            }
+
+            addError() {
+                this.errors++;
+                sound.playError();
+                this.updateProgressUI();
+                
+                const workspace = document.getElementById('workspace');
+                workspace.classList.add('animate-shake');
+                setTimeout(() => workspace.classList.remove('animate-shake'), 400);
+            }
+
+            updateProgressUI() {
+                document.getElementById('score-display').textContent = this.score;
+                document.getElementById('errors-display').textContent = this.errors;
+                document.getElementById('target-count-display').textContent = `${this.levelScore} / ${this.requiredScore}`;
+
+                const totalAttempts = this.score + this.errors;
+                const accuracy = totalAttempts > 0 ? Math.round((this.score / totalAttempts) * 100) : 100;
+                document.getElementById('accuracy-display').textContent = `${accuracy}%`;
+
+                const percentage = Math.min(100, Math.round((this.levelScore / this.requiredScore) * 100));
+                document.getElementById('level-progress-bar').style.width = `${percentage}%`;
+            }
+
+            completeLevel() {
+                this.stopTimer();
+                sound.playFanfare();
+
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+                }
+
+                document.getElementById('modal-time').textContent = document.getElementById('timer-display').textContent;
+                document.getElementById('modal-errors').textContent = this.errors;
+                document.getElementById('completion-modal').classList.remove('hidden');
+
+                document.getElementById('next-level-btn').classList.remove('hidden');
+            }
+
+            hideModal() {
+                document.getElementById('completion-modal').classList.add('hidden');
+            }
+
+            showCertificate() {
+                const totalAttempts = this.score + this.errors;
+                const accuracy = totalAttempts > 0 ? Math.round((this.score / totalAttempts) * 100) : 100;
+
+                document.getElementById('cert-score').textContent = this.score;
+                document.getElementById('cert-errors').textContent = this.errors;
+                document.getElementById('cert-accuracy').textContent = `${accuracy}%`;
+
+                document.getElementById('certificate-modal').classList.remove('hidden');
+
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 180, spread: 100, origin: { y: 0.5 } });
+                }
+            }
+
+            hideCertificate() {
+                document.getElementById('certificate-modal').classList.add('hidden');
+            }
+
+            showContextMenu(x, y, targetData = null) {
+                const menu = document.getElementById('custom-context-menu');
+                const workspace = document.getElementById('workspace').getBoundingClientRect();
+                
+                let posX = x - workspace.left;
+                let posY = y - workspace.top;
+
+                if (posX + 210 > workspace.width) posX = workspace.width - 220;
+                if (posY + 150 > workspace.height) posY = workspace.height - 160;
+
+                menu.style.left = `${posX}px`;
+                menu.style.top = `${posY}px`;
+                menu.classList.remove('hidden');
+
+                this.activeContextMenuTarget = targetData;
+            }
+
+            hideContextMenu() {
+                const menu = document.getElementById('custom-context-menu');
+                if (menu) menu.classList.add('hidden');
+            }
+
+            handleContextMenuSelection(option) {
+                this.hideContextMenu();
+                if (this.onContextMenuChoice) {
+                    this.onContextMenuChoice(option);
+                }
+            }
+
+            // --- MODULE 1: MOUSE LEVEL RENDERING ---
+
+            renderMouseL1() {
+                const area = document.getElementById('interactive-area');
+                const btn = document.createElement('button');
+                btn.className = 'w-40 h-40 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg flex flex-col items-center justify-center gap-2 transform active:scale-95 transition animate-pulse-ring cursor-pointer border-4 border-blue-200';
+                btn.innerHTML = `<i class="fa-solid fa-hand-pointer text-5xl"></i><span class="font-bold text-lg">Clique Aqui</span>`;
+                
+                btn.onclick = () => {
+                    this.addHit();
+                    if (this.levelScore < this.requiredScore) {
+                        btn.classList.remove('animate-pulse-ring');
+                        setTimeout(() => btn.classList.add('animate-pulse-ring'), 50);
+                    } else {
+                        btn.remove();
+                    }
+                };
+                area.appendChild(btn);
+            }
+
+            renderMouseL2() {
+                const area = document.getElementById('interactive-area');
+                area.onclick = (e) => { if (e.target === area) this.addError(); };
+
+                const spawn = () => {
+                    area.innerHTML = '';
+                    if (this.levelScore >= this.requiredScore) return;
+                    const btn = document.createElement('button');
+                    btn.className = 'w-16 h-16 bg-amber-400 hover:bg-amber-500 text-amber-950 rounded-full shadow-md flex items-center justify-center font-bold absolute transform active:scale-90 transition cursor-pointer';
+                    btn.innerHTML = `<i class="fa-solid fa-bullseye text-2xl"></i>`;
+                    
+                    const maxX = area.clientWidth - 90;
+                    const maxY = area.clientHeight - 90;
+                    btn.style.left = `${Math.max(20, Math.floor(Math.random() * maxX))}px`;
+                    btn.style.top = `${Math.max(20, Math.floor(Math.random() * maxY))}px`;
+
+                    btn.onclick = (e) => { e.stopPropagation(); this.addHit(); spawn(); };
+                    area.appendChild(btn);
+                };
+                spawn();
+            }
+
+            renderMouseL3() {
+                const area = document.getElementById('interactive-area');
+                const spawnFolder = () => {
+                    area.innerHTML = '';
+                    if (this.levelScore >= this.requiredScore) return;
+                    const folder = document.createElement('div');
+                    folder.className = 'flex flex-col items-center justify-center gap-2 p-5 bg-amber-50 border-2 border-dashed border-amber-300 rounded-2xl cursor-pointer hover:bg-amber-100 transition';
+                    folder.innerHTML = `<i class="fa-solid fa-folder text-amber-500 text-8xl drop-shadow"></i><span class="font-bold text-amber-900 text-lg">2 Cliques Rápidos para Abrir</span>`;
+                    folder.ondblclick = () => { this.addHit(); spawnFolder(); };
+                    area.appendChild(folder);
+                };
+                spawnFolder();
+            }
+
+            renderMouseL4() {
+                const area = document.getElementById('interactive-area');
+                const spawnItem = () => {
+                    area.innerHTML = '';
+                    if (this.levelScore >= this.requiredScore) return;
+                    const item = document.createElement('div');
+                    item.className = 'flex flex-col items-center justify-center p-6 bg-slate-50 border-2 border-indigo-200 rounded-2xl cursor-pointer hover:bg-indigo-50 transition';
+                    item.innerHTML = `<i class="fa-solid fa-mouse-pointer text-indigo-500 text-6xl mb-2"></i><span class="font-bold text-slate-700">Clique DIREITO aqui</span>`;
+                    item.oncontextmenu = (e) => {
+                        e.preventDefault(); e.stopPropagation();
+                        this.showContextMenu(e.clientX, e.clientY);
+                        this.addHit();
+                        setTimeout(() => spawnItem(), 500);
+                    };
+                    item.onclick = () => this.addError();
+                    area.appendChild(item);
+                };
+                spawnItem();
+            }
+
+            renderMouseL5() {
+                const area = document.getElementById('interactive-area');
+                area.className = 'w-full h-full relative flex items-center justify-around p-6';
+                const spawn = () => {
+                    area.innerHTML = '';
+                    if (this.levelScore >= this.requiredScore) return;
+
+                    const file = document.createElement('div');
+                    file.draggable = true;
+                    file.className = 'flex flex-col items-center justify-center p-4 bg-white border-2 border-indigo-400 rounded-2xl shadow-md cursor-grab active:cursor-grabbing hover:scale-105 transition';
+                    file.innerHTML = `<i class="fa-solid fa-file-lines text-indigo-500 text-5xl mb-1"></i><span class="font-bold text-xs text-slate-700">Arraste para Lixeira</span>`;
+
+                    const dropzone = document.createElement('div');
+                    dropzone.className = 'w-40 h-40 border-4 border-dashed border-rose-300 bg-rose-50 rounded-2xl flex flex-col items-center justify-center gap-2 text-rose-600 transition';
+                    dropzone.innerHTML = `<i class="fa-solid fa-trash-can text-5xl"></i><span class="font-bold text-sm">Lixeira</span>`;
+
+                    file.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/plain', 'trash'));
+                    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+                    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+                    dropzone.addEventListener('drop', (e) => {
+                        e.preventDefault(); dropzone.classList.remove('drag-over');
+                        this.addHit(); spawn();
+                    });
+
+                    area.appendChild(file);
+                    area.appendChild(dropzone);
+                };
+                spawn();
+            }
+
+            renderMouseL6() {
+                const area = document.getElementById('interactive-area');
+                area.className = 'w-full h-full relative';
+
+                const scrollContainer = document.createElement('div');
+                scrollContainer.className = 'w-full h-full overflow-y-auto custom-scrollbar p-6 space-y-6 bg-slate-50 rounded-xl border border-slate-200';
+
+                let contentHtml = `<div class="p-4 bg-indigo-50 text-indigo-700 font-bold rounded-xl text-center"><i class="fa-solid fa-arrow-down mr-2"></i> Role a roda do mouse para baixo!</div>`;
+                for (let i = 1; i <= 8; i++) {
+                    contentHtml += `<div class="p-4 bg-white rounded-xl border border-slate-200 text-slate-500 font-medium text-sm">Documento de treino #${i}... Continue rolando a roda.</div>`;
+                }
+
+                scrollContainer.innerHTML = contentHtml;
+
+                const hiddenBtnContainer = document.createElement('div');
+                hiddenBtnContainer.className = 'p-6 bg-emerald-100 border-2 border-emerald-400 rounded-2xl text-center flex flex-col items-center gap-3 my-8';
+                hiddenBtnContainer.innerHTML = `
+                    <span class="font-bold text-emerald-900 text-base">Você encontrou o código oculto!</span>
+                    <button id="scroll-target-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl shadow cursor-pointer">
+                        <i class="fa-solid fa-check-circle mr-2"></i> Confirmar Leitura
+                    </button>
+                `;
+
+                scrollContainer.appendChild(hiddenBtnContainer);
+                area.appendChild(scrollContainer);
+
+                document.getElementById('scroll-target-btn').onclick = () => {
+                    this.addHit();
+                    if (this.levelScore < this.requiredScore) scrollContainer.scrollTop = 0;
+                };
+            }
+
+            renderMouseL7() {
+                const area = document.getElementById('interactive-area');
+                area.className = 'w-full h-full flex flex-col justify-center items-center gap-4';
+                area.innerHTML = `
+                    <div class="bg-indigo-50 border border-indigo-200 p-3 rounded-xl text-indigo-800 text-xs font-semibold text-center mb-2">
+                        <i class="fa-solid fa-circle-info mr-1"></i> Aperte na RODA DO MOUSE (Botão do Meio) sobre cada aba para fechar.
+                    </div>
+                    <div id="tabs-bar" class="flex flex-wrap justify-center gap-3 max-w-xl"></div>
+                `;
+
+                const tabsBar = document.getElementById('tabs-bar');
+                for (let i = 1; i <= 4; i++) {
+                    const tab = document.createElement('div');
+                    tab.className = 'bg-slate-200 hover:bg-slate-300 border border-slate-300 px-4 py-2.5 rounded-xl flex items-center gap-3 cursor-pointer transition text-slate-700 font-bold text-sm shadow-sm';
+                    tab.innerHTML = `<i class="fa-solid fa-globe text-indigo-500"></i><span>Página Navegador #${i}</span><span class="text-xs bg-slate-300 rounded-full w-5 h-5 flex items-center justify-center">✕</span>`;
+
+                    tab.addEventListener('mousedown', (e) => {
+                        if (e.button === 1) { // Middle click
+                            e.preventDefault();
+                            tab.remove();
+                            this.addHit();
+                        } else if (e.button === 0) {
+                            this.addError();
+                        }
+                    });
+                    tabsBar.appendChild(tab);
+                }
+            }
+
+            renderMouseL8() {
+                const area = document.getElementById('interactive-area');
+                area.innerHTML = '';
+
+                const target = document.createElement('button');
+                target.className = 'w-16 h-16 bg-rose-500 hover:bg-rose-600 text-white rounded-full shadow-lg flex items-center justify-center font-bold absolute transition-all duration-300 cursor-pointer';
+                target.innerHTML = `<i class="fa-solid fa-bullseye text-2xl"></i>`;
+
+                let posX = 40, posY = 40, dirX = 1, dirY = 1;
+
+                this.movingInterval = setInterval(() => {
+                    const maxX = area.clientWidth - 80;
+                    const maxY = area.clientHeight - 80;
+                    posX += 8 * dirX;
+                    posY += 8 * dirY;
+                    if (posX <= 10 || posX >= maxX) dirX *= -1;
+                    if (posY <= 10 || posY >= maxY) dirY *= -1;
+                    target.style.left = `${posX}px`;
+                    target.style.top = `${posY}px`;
+                }, 30);
+
+                target.onclick = (e) => {
+                    e.stopPropagation();
+                    this.addHit();
+                    posX = Math.random() * (area.clientWidth - 100);
+                    posY = Math.random() * (area.clientHeight - 100);
+                };
+                area.appendChild(target);
+            }
+
+            renderMouseL9() {
+                const area = document.getElementById('interactive-area');
+                area.className = 'w-full h-full relative select-none bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden';
+
+                const dotsContainer = document.createElement('div');
+                dotsContainer.className = 'w-full h-full relative';
+
+                // Spawn dots
+                const dots = [];
+                for (let i = 0; i < 3; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'w-8 h-8 bg-amber-400 border-2 border-amber-600 rounded-full absolute shadow flex items-center justify-center text-xs font-bold text-amber-950';
+                    dot.textContent = i + 1;
+                    dot.style.left = `${100 + i * 140}px`;
+                    dot.style.top = `${120 + (i % 2) * 80}px`;
+                    dotsContainer.appendChild(dot);
+                    dots.push(dot);
+                }
+
+                // Selection Box
+                const selectionBox = document.createElement('div');
+                selectionBox.className = 'absolute border-2 border-blue-500 bg-blue-500/20 hidden pointer-events-none rounded';
+
+                area.appendChild(dotsContainer);
+                area.appendChild(selectionBox);
+
+                let startX = 0, startY = 0, isDragging = false;
+
+                area.onmousedown = (e) => {
+                    if (e.button !== 0) return;
+                    isDragging = true;
+                    const rect = area.getBoundingClientRect();
+                    startX = e.clientX - rect.left;
+                    startY = e.clientY - rect.top;
+
+                    selectionBox.style.left = `${startX}px`;
+                    selectionBox.style.top = `${startY}px`;
+                    selectionBox.style.width = '0px';
+                    selectionBox.style.height = '0px';
+                    selectionBox.classList.remove('hidden');
+                };
+
+                area.onmousemove = (e) => {
+                    if (!isDragging) return;
+                    const rect = area.getBoundingClientRect();
+                    const currentX = e.clientX - rect.left;
+                    const currentY = e.clientY - rect.top;
+
+                    const width = Math.abs(currentX - startX);
+                    const height = Math.abs(currentY - startY);
+                    const left = Math.min(startX, currentX);
+                    const top = Math.min(startY, currentY);
+
+                    selectionBox.style.left = `${left}px`;
+                    selectionBox.style.top = `${top}px`;
+                    selectionBox.style.width = `${width}px`;
+                    selectionBox.style.height = `${height}px`;
+                };
+
+                area.onmouseup = () => {
+                    if (!isDragging) return;
+                    isDragging = false;
+                    selectionBox.classList.add('hidden');
+
+                    const boxRect = selectionBox.getBoundingClientRect();
+                    let caught = 0;
+                    dots.forEach(dot => {
+                        const dRect = dot.getBoundingClientRect();
+                        if (
+                            dRect.left >= boxRect.left &&
+                            dRect.right <= boxRect.right &&
+                            dRect.top >= boxRect.top &&
+                            dRect.bottom <= boxRect.bottom
+                        ) {
+                            caught++;
+                        }
+                    });
+
+                    if (caught >= 3) {
+                        this.addHit();
+                        if (this.levelScore < this.requiredScore) {
+                            this.renderMouseL9();
+                        }
+                    } else {
+                        this.addError();
+                    }
+                };
+            }
+
+            renderMouseL10() {
+                const area = document.getElementById('interactive-area');
+                area.className = 'w-full h-full flex flex-col items-center justify-center p-4';
+                area.innerHTML = `
+                    <div class="text-center mb-2">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Segure o clique do mouse e pinte 70% do quadro</span>
+                    </div>
+                    <canvas id="paint-canvas" width="500" height="260" class="bg-slate-100 border-2 border-dashed border-indigo-300 rounded-2xl shadow-inner"></canvas>
+                    <div class="w-full max-w-md bg-slate-200 h-4 rounded-full mt-3 overflow-hidden border border-slate-300">
+                        <div id="paint-progress" class="bg-indigo-600 h-full w-0 transition-all"></div>
+                    </div>
+                `;
+
+                const canvas = document.getElementById('paint-canvas');
+                const ctx = canvas.getContext('2d');
+                let isPainting = false;
+                let paintedPixels = 0;
+
+                ctx.strokeStyle = '#4f46e5';
+                ctx.lineWidth = 24;
+                ctx.lineCap = 'round';
+
+                const getCanvasCoords = (e) => {
+                    const rect = canvas.getBoundingClientRect();
+                    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+                };
+
+                canvas.onmousedown = (e) => {
+                    isPainting = true;
+                    const pos = getCanvasCoords(e);
+                    ctx.beginPath();
+                    ctx.moveTo(pos.x, pos.y);
+                };
+
+                canvas.onmousemove = (e) => {
+                    if (!isPainting) return;
+                    const pos = getCanvasCoords(e);
+                    ctx.lineTo(pos.x, pos.y);
+                    ctx.stroke();
+
+                    // Check coverage approximation
+                    paintedPixels += 1;
+                    const progress = Math.min(100, Math.round((paintedPixels / 350) * 100));
+                    document.getElementById('paint-progress').style.width = `${progress}%`;
+
+                    if (progress >= 70 && this.levelScore < this.requiredScore) {
+                        isPainting = false;
+                        this.addHit();
+                    }
+                };
+
+                canvas.onmouseup = () => isPainting = false;
+            }
+
+            renderMouseL11() {
+                const area = document.getElementById('interactive-area');
+                area.className = 'w-full h-full flex flex-col items-center justify-center p-6';
+
+                let zoomValue = 20;
+                area.innerHTML = `
+                    <div id="zoom-box" class="w-full max-w-md bg-white border-2 border-indigo-200 p-8 rounded-3xl shadow-sm flex flex-col items-center gap-5 text-center cursor-ns-resize">
+                        <i class="fa-solid fa-magnifying-glass-plus text-indigo-500 text-6xl"></i>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800">Ajuste o Zoom em 100%</h3>
+                            <p class="text-xs text-slate-500 mt-1">Role a roda do mouse para cima no quadro.</p>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-6 p-1 border border-slate-200 relative overflow-hidden">
+                            <div id="zoom-fill" class="bg-indigo-600 h-full rounded-full transition-all duration-150" style="width: ${zoomValue}%"></div>
+                            <span id="zoom-text" class="absolute inset-0 flex items-center justify-center text-xs font-bold text-slate-700">${zoomValue}%</span>
+                        </div>
+                        <button id="confirm-zoom-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-xl shadow transition hidden">
+                            Confirmar 100%
+                        </button>
+                    </div>
+                `;
+
+                const box = document.getElementById('zoom-box');
+                const fill = document.getElementById('zoom-fill');
+                const text = document.getElementById('zoom-text');
+                const btn = document.getElementById('confirm-zoom-btn');
+
+                box.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    if (e.deltaY < 0) zoomValue = Math.min(100, zoomValue + 10);
+                    else zoomValue = Math.max(10, zoomValue - 10);
+
+                    fill.style.width = `${zoomValue}%`;
+                    text.textContent = `${zoomValue}%`;
+                    if (zoomValue === 100) btn.classList.remove('hidden');
+                    else btn.classList.add('hidden');
+                });
+
+                btn.onclick = () => {
+                    this.addHit();
+                    if (this.levelScore < this.requiredScore) {
+                        zoomValue = 20;
+                        fill.style.width = `${zoomValue}%`;
+                        text.textContent = `${zoomValue}%`;
+                        btn.classList.add('hidden');
+                    }
+                };
+            }
+
+            renderMouseL12() {
+                this.renderMouseL5(); // Reuses multi drag
+            }
+
+            renderMouseL13() {
+                const area = document.getElementById('interactive-area');
+                area.className = 'w-full h-full flex flex-col md:flex-row items-center justify-around p-6 gap-6';
+
+                let copied = false;
+
+                area.innerHTML = `
+                    <div id="source-file" class="p-6 bg-blue-50 border-2 border-blue-300 rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-blue-100 transition w-56">
+                        <i class="fa-solid fa-file-code text-blue-600 text-5xl"></i>
+                        <span class="font-bold text-xs text-blue-900">1º Clique Direito -> "Copiar"</span>
+                    </div>
+
+                    <div id="target-folder" class="p-6 bg-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-emerald-100 transition w-56 min-h-[160px]">
+                        <i class="fa-solid fa-folder-plus text-emerald-500 text-5xl"></i>
+                        <span class="font-bold text-xs text-emerald-900 text-center">2º Clique Direito Aqui -> "Colar"</span>
+                    </div>
+                `;
+
+                const source = document.getElementById('source-file');
+                const target = document.getElementById('target-folder');
+
+                source.oncontextmenu = (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    this.showContextMenu(e.clientX, e.clientY, 'source');
+                };
+
+                target.oncontextmenu = (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    this.showContextMenu(e.clientX, e.clientY, 'target');
+                };
+
+                this.onContextMenuChoice = (action) => {
+                    if (action === 'copiar' && this.activeContextMenuTarget === 'source') {
+                        copied = true;
+                        sound.playSuccess();
+                        source.classList.add('border-emerald-500');
+                    } else if (action === 'colar' && this.activeContextMenuTarget === 'target') {
+                        if (copied) {
+                            this.addHit();
+                            copied = false;
+                            if (this.levelScore < this.requiredScore) this.renderMouseL13();
+                        } else {
+                            this.addError();
+                        }
+                    } else {
+                        this.addError();
+                    }
+                };
+            }
+
+            renderMouseL14() {
+                const area = document.getElementById('interactive-area');
+                area.className = 'w-full h-full relative flex items-center justify-between p-8';
+
+                const spawnPrecisionTask = () => {
+                    area.innerHTML = '';
+                    if (this.levelScore >= this.requiredScore) return;
+
+                    const draggableCircle = document.createElement('div');
+                    draggableCircle.draggable = true;
+                    draggableCircle.className = 'w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg cursor-grab active:cursor-grabbing border-4 border-blue-200';
+                    draggableCircle.innerHTML = `<i class="fa-solid fa-arrows-up-down-left-right text-2xl"></i>`;
+
+                    const precisionTarget = document.createElement('div');
+                    precisionTarget.className = 'w-32 h-32 border-4 border-dashed border-emerald-500 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600 font-bold transition';
+                    precisionTarget.innerHTML = `<i class="fa-solid fa-crosshairs text-4xl"></i>`;
+
+                    draggableCircle.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/plain', 'circle'));
+                    precisionTarget.addEventListener('dragover', (e) => { e.preventDefault(); precisionTarget.classList.add('drag-over'); });
+                    precisionTarget.addEventListener('dragleave', () => precisionTarget.classList.remove('drag-over'));
+                    precisionTarget.addEventListener('drop', (e) => {
+                        e.preventDefault(); precisionTarget.classList.remove('drag-over');
+                        this.addHit(); spawnPrecisionTask();
+                    });
+
+                    area.appendChild(draggableCircle);
+                    area.appendChild(precisionTarget);
+                };
+                spawnPrecisionTask();
+            }
+
+            renderMouseL15() {
+                const area = document.getElementById('interactive-area');
+                const challenges = [
+                    { type: 'click', text: '1. Clique Simples no Botão', class: 'bg-blue-500 text-white p-5 rounded-2xl font-bold' },
+                    { type: 'dblclick', text: '2. Duplo Clique para Abrir', class: 'bg-amber-100 border border-amber-300 text-amber-900 p-5 rounded-2xl font-bold' },
+                    { type: 'context', text: '3. Botão Direito na Caixa', class: 'bg-indigo-100 border border-indigo-300 text-indigo-900 p-5 rounded-2xl font-bold' },
+                    { type: 'middle', text: '4. Clique na Roda do Mouse (Botão do Meio)', class: 'bg-purple-600 text-white p-5 rounded-2xl font-bold' }
+                ];
+
+                const current = challenges[this.levelScore % challenges.length];
+                area.innerHTML = `
+                    <div id="final-target" class="${current.class} shadow-lg cursor-pointer flex items-center justify-center gap-3 text-lg transition transform active:scale-95">
+                        <i class="fa-solid fa-star text-yellow-300 text-3xl"></i><span>${current.text}</span>
+                    </div>
+                `;
+
+                const target = document.getElementById('final-target');
+                target.onclick = () => {
+                    if (current.type === 'click') this.addHit();
+                    else if (current.type !== 'dblclick' && current.type !== 'middle') this.addError();
+                };
+                target.ondblclick = () => { if (current.type === 'dblclick') this.addHit(); };
+                target.oncontextmenu = (e) => {
+                    e.preventDefault();
+                    if (current.type === 'context') this.addHit();
+                    else this.addError();
+                };
+                target.onmousedown = (e) => {
+                    if (e.button === 1) {
+                        e.preventDefault();
+                        if (current.type === 'middle') this.addHit();
+                        else this.addError();
+                    }
+                };
+            }
+
+            // --- MODULE 2: TYPING LEVEL RENDERING & LOGIC ---
+
+            renderTypingLevel() {
+                const area = document.getElementById('interactive-area');
+                area.className = 'w-full h-full flex flex-col justify-between items-center p-2 md:p-4';
+
+                const level = this.typingLevels[this.currentLevelIndex];
+                const targetText = level.text;
+
+                area.innerHTML = `
+                    <!-- Target Text Display Box -->
+                    <div class="w-full max-w-3xl bg-slate-950 text-white p-5 rounded-2xl shadow-lg border border-slate-800 mb-3 font-mono text-xl md:text-2xl tracking-widest flex flex-wrap gap-1 leading-relaxed justify-center items-center select-none" id="typing-text-box">
+                        <!-- Individual character spans built in JS -->
+                    </div>
+
+                    <!-- Virtual ABNT2 On-Screen Keyboard -->
+                    <div id="virtual-keyboard" class="w-full max-w-3xl bg-slate-200 p-3 rounded-2xl border border-slate-300 shadow-inner flex flex-col gap-1.5 text-xs font-bold text-slate-700 select-none">
+                        <!-- Row 1 -->
+                        <div class="flex gap-1 justify-center">
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="'">' "</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="1">1</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="2">2</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="3">3</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="4">4</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="5">5</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="6">6</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="7">7</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="8">8</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="9">9</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="0">0</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="-">-</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="=">=</div>
+                        </div>
+                        <!-- Row 2 -->
+                        <div class="flex gap-1 justify-center">
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="q">Q</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="w">W</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="e">E</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="r">R</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="t">T</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="y">Y</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="u">U</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="i">I</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="o">O</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="p">P</div>
+                        </div>
+                        <!-- Row 3 (Home Row) -->
+                        <div class="flex gap-1 justify-center">
+                            <div class="key bg-amber-100 border-amber-300 border px-2.5 py-2 rounded shadow-sm min-w-[32px] text-center font-bold" data-key="a">A</div>
+                            <div class="key bg-amber-100 border-amber-300 border px-2.5 py-2 rounded shadow-sm min-w-[32px] text-center font-bold" data-key="s">S</div>
+                            <div class="key bg-amber-100 border-amber-300 border px-2.5 py-2 rounded shadow-sm min-w-[32px] text-center font-bold" data-key="d">D</div>
+                            <div class="key bg-amber-200 border-amber-400 border px-2.5 py-2 rounded shadow-sm min-w-[32px] text-center font-bold" data-key="f">F*</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="g">G</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="h">H</div>
+                            <div class="key bg-amber-200 border-amber-400 border px-2.5 py-2 rounded shadow-sm min-w-[32px] text-center font-bold" data-key="j">J*</div>
+                            <div class="key bg-amber-100 border-amber-300 border px-2.5 py-2 rounded shadow-sm min-w-[32px] text-center font-bold" data-key="k">K</div>
+                            <div class="key bg-amber-100 border-amber-300 border px-2.5 py-2 rounded shadow-sm min-w-[32px] text-center font-bold" data-key="l">L</div>
+                            <div class="key bg-amber-100 border-amber-300 border px-2.5 py-2 rounded shadow-sm min-w-[32px] text-center font-bold" data-key="ç">Ç</div>
+                        </div>
+                        <!-- Row 4 -->
+                        <div class="flex gap-1 justify-center">
+                            <div class="key bg-white px-3 py-2 rounded shadow-sm border border-slate-300 min-w-[48px] text-center font-mono" data-key="shift">SHIFT</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="z">Z</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="x">X</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="c">C</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="v">V</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="b">B</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="n">N</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="m">M</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key=",">,</div>
+                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key=".">.</div>
+                        </div>
+                        <!-- Row 5 (Space) -->
+                        <div class="flex gap-1 justify-center">
+                            <div class="key bg-white px-12 py-2 rounded shadow-sm border border-slate-300 font-bold text-center" data-key=" ">ESPAÇO</div>
+                        </div>
+                    </div>
+                `;
+
+                // Render Char Spans
+                const textBox = document.getElementById('typing-text-box');
+                textBox.innerHTML = '';
+
+                for (let i = 0; i < targetText.length; i++) {
+                    const span = document.createElement('span');
+                    span.id = `char-${i}`;
+                    span.className = 'px-1 rounded font-mono transition-colors';
+                    span.textContent = targetText[i] === ' ' ? '␣' : targetText[i];
+                    if (i === 0) span.classList.add('bg-indigo-600', 'text-white', 'animate-pulse');
+                    else span.classList.add('text-slate-400');
+                    textBox.appendChild(span);
+                }
+
+                this.highlightNextTargetKey(targetText[0]);
+            }
+
+            highlightNextTargetKey(char) {
+                // Remove previous target highlight
+                document.querySelectorAll('.key-target').forEach(el => el.classList.remove('key-target'));
+                if (!char) return;
+
+                const lowerChar = char.toLowerCase();
+                const keyEl = document.querySelector(`.key[data-key="${lowerChar}"]`);
+                if (keyEl) {
+                    keyEl.classList.add('key-target');
+                }
+            }
+
+            highlightVirtualKey(keyChar, active) {
+                const lowerKey = keyChar === ' ' ? ' ' : keyChar.toLowerCase();
+                const keyEl = document.querySelector(`.key[data-key="${lowerKey}"]`);
+                if (keyEl) {
+                    if (active) keyEl.classList.add('key-active');
+                    else keyEl.classList.remove('key-active');
+                }
+            }
+
+            handleTypingKeyPress(e) {
+                // Ignore system modifier keys
+                if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab'].includes(e.key)) {
+                    if (e.key === 'Shift') this.highlightVirtualKey('shift', true);
+                    return;
+                }
+
+                const level = this.typingLevels[this.currentLevelIndex];
+                const targetText = level.text;
+                const currentIndex = this.levelScore;
+
+                if (currentIndex >= targetText.length) return;
+
+                const expectedChar = targetText[currentIndex];
+                const typedChar = e.key;
+
+                this.highlightVirtualKey(typedChar, true);
+
+                if (typedChar === expectedChar) {
+                    sound.playKeyTap();
+                    this.typingTotalTypedChars++;
+
+                    // Mark current span as correct
+                    const currentSpan = document.getElementById(`char-${currentIndex}`);
+                    if (currentSpan) {
+                        currentSpan.className = 'px-1 rounded font-mono text-emerald-400 font-bold bg-emerald-950/50';
+                    }
+
+                    this.addHit();
+
+                    // Advance cursor to next char
+                    const nextIndex = currentIndex + 1;
+                    if (nextIndex < targetText.length) {
+                        const nextSpan = document.getElementById(`char-${nextIndex}`);
+                        if (nextSpan) {
+                            nextSpan.className = 'px-1 rounded font-mono bg-indigo-600 text-white animate-pulse';
+                        }
+                        this.highlightNextTargetKey(targetText[nextIndex]);
+                    }
+                } else {
+                    this.addError();
+                    const currentSpan = document.getElementById(`char-${currentIndex}`);
+                    if (currentSpan) {
+                        currentSpan.classList.add('bg-rose-600', 'text-white');
+                        setTimeout(() => currentSpan.classList.remove('bg-rose-600'), 300);
+                    }
+                }
+            }
+        }
+
+        let app;
+        window.addEventListener('DOMContentLoaded', () => {
+            app = new ComputerSkillsApp();
+            app.init();
+        });
+    </script>
+</body>
+</html>

@@ -77,7 +77,6 @@
             color: white;
         }
 
-        /* Canvas paint styles */
         #paint-canvas {
             touch-action: none;
             cursor: crosshair;
@@ -294,7 +293,6 @@
     </div>
 
     <script>
-        // Web Audio API Sound Synthesizer
         class SoundEngine {
             constructor() {
                 this.ctx = null;
@@ -314,8 +312,8 @@
                 const gain = this.ctx.createGain();
 
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(523.25, now); // C5
-                osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.12); // G5
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.12);
 
                 gain.gain.setValueAtTime(0.2, now);
                 gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
@@ -409,11 +407,9 @@
                 this.movingInterval = null;
                 this.activeContextMenuTarget = null;
 
-                // Typing stats
                 this.typingTotalTypedChars = 0;
                 this.typingStartTime = null;
 
-                // Module 1: Mouse Mastery (15 Levels)
                 this.mouseLevels = [
                     { id: 1, title: 'Clique Simples', instruction: 'Clique com o BOTÃO ESQUERDO no botão de alvo.', icon: 'fa-hand-pointer', required: 3, render: () => this.renderMouseL1() },
                     { id: 2, title: 'Precisão de Clique', instruction: 'Clique nos alvos menores conforme surgirem na tela.', icon: 'fa-bullseye', required: 5, render: () => this.renderMouseL2() },
@@ -432,7 +428,6 @@
                     { id: 15, title: 'Desafio Final do Mouse', instruction: 'Siga a instrução sorteada para cada caixa e complete o módulo!', icon: 'fa-award', required: 5, render: () => this.renderMouseL15() }
                 ];
 
-                // Module 2: Typing Mastery / Digitação (10 Levels)
                 this.typingLevels = [
                     { id: 1, title: 'Teclas Guia - Mão Esquerda', instruction: 'Mantenha os dedos da mão esquerda sobre: a s d f e pressione com o polegar o espaço.', icon: 'fa-keyboard', text: 'asdf asdf fda asdf a s d f asdf', render: () => this.renderTypingLevel() },
                     { id: 2, title: 'Teclas Guia - Mão Direita', instruction: 'Posicione a mão direita em: j k l ç e use o espaço.', icon: 'fa-keyboard', text: 'jklç jklç çlkj j k l ç jklç', render: () => this.renderTypingLevel() },
@@ -467,7 +462,6 @@
                 this.currentModule = modNum;
                 this.currentLevelIndex = 0;
 
-                // Update Tabs UI
                 const btn1 = document.getElementById('mod1-tab-btn');
                 const btn2 = document.getElementById('mod2-tab-btn');
                 const logoIcon = document.getElementById('app-logo-icon');
@@ -592,7 +586,6 @@
                 this.requiredScore = level.required || 1;
                 this.updateStatsDisplay();
 
-                // UI Banner updates
                 document.getElementById('level-badge').textContent = `Módulo ${this.currentModule} - Nível ${level.id}`;
                 document.getElementById('level-title').textContent = level.title;
                 document.getElementById('level-instruction').textContent = level.instruction;
@@ -603,7 +596,6 @@
                 document.getElementById('level-select').value = index;
                 document.getElementById('next-level-btn').classList.add('hidden');
 
-                // Render level content
                 const container = document.getElementById('interactive-area');
                 container.innerHTML = '';
                 level.render();
@@ -709,10 +701,6 @@
                 const menu = document.getElementById('custom-context-menu');
                 if (menu) menu.classList.add('hidden');
             }
-
-            // ==========================================
-            // MÓDULO 1: RENDERIZAÇÕES DO MOUSE
-            // ==========================================
 
             renderMouseL1() {
                 const container = document.getElementById('interactive-area');
@@ -909,7 +897,7 @@
                     `;
 
                     tab.onmousedown = (e) => {
-                        if (e.button === 1) { // Middle click
+                        if (e.button === 1) {
                             e.preventDefault();
                             tab.remove();
                             this.registerSuccess();
@@ -921,45 +909,43 @@
                 }
             }
 
-            // AJUSTADO: Alvo em movimento mantido estritamente dentro dos limites da tela/container
             renderMouseL8() {
                 const container = document.getElementById('interactive-area');
                 container.className = "w-full h-full relative overflow-hidden flex items-center justify-center";
 
                 const btn = document.createElement('button');
-                btn.className = "absolute bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-5 rounded-full shadow-xl transition-transform duration-300 ease-out cursor-pointer flex items-center justify-center";
+                btn.className = "absolute bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-5 rounded-full shadow-xl transition-all duration-300 ease-out cursor-pointer flex items-center justify-center z-10";
+                btn.style.left = "50%";
+                btn.style.top = "50%";
+                btn.style.transform = "translate(-50%, -50%)";
                 btn.innerHTML = `<i class="fa-solid fa-ghost text-2xl"></i>`;
 
                 container.appendChild(btn);
 
-                let posX = 0;
-                let posY = 0;
-
                 const move = () => {
-                    const cWidth = container.clientWidth || 600;
-                    const cHeight = container.clientHeight || 400;
-                    const btnWidth = btn.offsetWidth || 60;
-                    const btnHeight = btn.offsetHeight || 60;
+                    const rect = container.getBoundingClientRect();
+                    const maxLeft = Math.max(10, rect.width - 80);
+                    const maxTop = Math.max(10, rect.height - 80);
 
-                    // Mantém margem interna para evitar sair do container
-                    const maxLeft = (cWidth / 2) - (btnWidth / 2) - 20;
-                    const maxTop = (cHeight / 2) - (btnHeight / 2) - 20;
+                    const newLeft = Math.floor(Math.random() * maxLeft);
+                    const newTop = Math.floor(Math.random() * maxTop);
 
-                    posX = (Math.random() * (maxLeft * 2)) - maxLeft;
-                    posY = (Math.random() * (maxTop * 2)) - maxTop;
-
-                    btn.style.transform = `translate(${posX}px, ${posY}px)`;
+                    btn.style.left = `${newLeft}px`;
+                    btn.style.top = `${newTop}px`;
+                    btn.style.transform = "none";
                 };
 
-                move();
                 this.movingInterval = setInterval(move, 900);
 
-                btn.onclick = () => {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
                     this.registerSuccess();
                     if (this.levelScore >= this.requiredScore) {
                         clearInterval(this.movingInterval);
-                        btn.style.transform = `translate(0px, 0px)`;
-                        btn.className = "bg-emerald-500 text-white font-bold p-5 rounded-full shadow-xl pointer-events-none";
+                        btn.className = "absolute bg-emerald-500 text-white font-bold p-5 rounded-full shadow-xl pointer-events-none z-10";
+                        btn.style.left = "50%";
+                        btn.style.top = "50%";
+                        btn.style.transform = "translate(-50%, -50%)";
                         btn.innerHTML = `<i class="fa-solid fa-check text-2xl"></i>`;
                     } else {
                         move();
@@ -1364,10 +1350,6 @@
                 container.appendChild(card);
             }
 
-            // ==========================================
-            // MÓDULO 2: RENDERIZAÇÕES DE DIGITAÇÃO
-            // ==========================================
-
             renderTypingLevel() {
                 const container = document.getElementById('interactive-area');
                 container.className = "w-full h-full flex flex-col justify-between items-center p-4";
@@ -1379,13 +1361,10 @@
 
                 this.requiredScore = this.typingTextTarget.length;
 
-                // Display Box for Target Text
                 const textDisplayBox = document.createElement('div');
                 textDisplayBox.className = "w-full max-w-3xl bg-slate-50 border-2 border-slate-200 p-6 rounded-2xl shadow-inner text-xl md:text-2xl code-font leading-relaxed tracking-wider text-left break-words min-h-[120px]";
 
                 this.updateTypingTextRender(textDisplayBox);
-
-                // Virtual Keyboard Representation
                 const keyboardBox = this.createVirtualKeyboard();
 
                 container.appendChild(textDisplayBox);
@@ -1441,7 +1420,6 @@
                     kb.appendChild(rowDiv);
                 });
 
-                // Spacebar row
                 const spaceRow = document.createElement('div');
                 spaceRow.className = "flex justify-center gap-1.5 w-full mt-1";
 
@@ -1511,7 +1489,6 @@
             }
         }
 
-        // Initialize App on DOM Load
         let app;
         window.addEventListener('DOMContentLoaded', () => {
             app = new ComputerSkillsApp();

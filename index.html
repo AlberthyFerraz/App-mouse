@@ -12,7 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Fira+Code:wght@500;700&display=swap');
-        
+
         body {
             font-family: 'Fredoka', sans-serif;
             user-select: none;
@@ -89,7 +89,7 @@
     <!-- Header Navigation & Info -->
     <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-30">
         <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
-            
+
             <!-- Logo & Module Tabs -->
             <div class="flex items-center gap-4">
                 <div class="bg-white/20 p-2.5 rounded-2xl flex items-center justify-center">
@@ -194,7 +194,7 @@
 
         <!-- Interactive Playground / Typing Box -->
         <div id="workspace" class="bg-white rounded-2xl shadow-sm border border-slate-200 flex-1 min-h-[460px] relative overflow-hidden flex flex-col items-center justify-center p-4">
-            
+
             <div id="interactive-area" class="w-full h-full relative flex flex-col items-center justify-center">
                 <!-- Dynamically rendered UI for active level -->
             </div>
@@ -223,7 +223,7 @@
             </div>
             <h3 class="text-2xl font-bold text-slate-800">Parabéns! Fase Concluída!</h3>
             <p id="modal-subtitle" class="text-slate-500 text-sm mt-1">Você concluiu com sucesso este exercício.</p>
-            
+
             <div class="bg-slate-50 rounded-2xl p-4 my-5 grid grid-cols-2 gap-3 text-left border border-slate-200">
                 <div>
                     <span class="text-xs text-slate-400 font-bold uppercase block">Tempo Gasto</span>
@@ -252,7 +252,7 @@
             <div class="absolute top-4 right-4 text-yellow-500 text-3xl">
                 <i class="fa-solid fa-certificate"></i>
             </div>
-            
+
             <div class="w-20 h-20 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-3">
                 <i class="fa-solid fa-graduation-cap"></i>
             </div>
@@ -312,7 +312,7 @@
                 const now = this.ctx.currentTime;
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
-                
+
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(523.25, now); // C5
                 osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.12); // G5
@@ -565,128 +565,129 @@
                     clearInterval(this.timerInterval);
                     this.timerInterval = null;
                 }
+                if (this.movingInterval) {
+                    clearInterval(this.movingInterval);
+                    this.movingInterval = null;
+                }
             }
 
             updateTimerDisplay() {
                 const mins = Math.floor(this.timerSeconds / 60).toString().padStart(2, '0');
                 const secs = (this.timerSeconds % 60).toString().padStart(2, '0');
-                document.getElementById('timer-display').textContent = `${mins}:${secs}`;
-            }
-
-            calculateWPM() {
-                if (this.timerSeconds <= 0) return;
-                const minutes = this.timerSeconds / 60;
-                const words = this.typingTotalTypedChars / 5;
-                const wpm = Math.round(words / minutes);
-                document.getElementById('wpm-display').textContent = `${wpm} WPM`;
+                const display = document.getElementById('timer-display');
+                if (display) display.textContent = `${mins}:${secs}`;
             }
 
             loadLevel(index) {
-                if (this.movingInterval) clearInterval(this.movingInterval);
-                this.currentLevelIndex = index;
-                this.levelScore = 0;
-                this.activeContextMenuTarget = null;
+                this.stopTimer();
                 this.hideContextMenu();
-
                 const levels = this.getActiveLevels();
-                const level = levels[index];
-                
-                if (this.currentModule === 2) {
-                    this.requiredScore = level.text.length;
-                    this.typingTotalTypedChars = 0;
-                } else {
-                    this.requiredScore = level.required;
-                }
 
-                // Update Banner Info
-                document.getElementById('level-select').value = index;
+                if (index < 0 || index >= levels.length) return;
+
+                this.currentLevelIndex = index;
+                const level = levels[index];
+
+                this.levelScore = 0;
+                this.requiredScore = level.required || 1;
+                this.updateStatsDisplay();
+
+                // UI Banner updates
                 document.getElementById('level-badge').textContent = `Módulo ${this.currentModule} - Nível ${level.id}`;
                 document.getElementById('level-title').textContent = level.title;
                 document.getElementById('level-instruction').textContent = level.instruction;
-                document.getElementById('instruction-icon').className = `fa-solid ${level.icon}`;
-                
-                document.getElementById('next-level-btn').classList.add('hidden');
-                this.updateProgressUI();
-                this.startTimer();
 
-                // Clear Workspace & Render Level
-                const area = document.getElementById('interactive-area');
-                area.innerHTML = '';
+                const iconElem = document.getElementById('instruction-icon');
+                iconElem.className = `fa-solid ${level.icon}`;
+
+                document.getElementById('level-select').value = index;
+                document.getElementById('next-level-btn').classList.add('hidden');
+
+                // Render level content
+                const container = document.getElementById('interactive-area');
+                container.innerHTML = '';
                 level.render();
+
+                this.startTimer();
+            }
+
+            changeLevel(idxStr) {
+                this.loadLevel(parseInt(idxStr, 10));
             }
 
             restartLevel() {
                 this.loadLevel(this.currentLevelIndex);
             }
 
-            changeLevel(idx) {
-                this.loadLevel(parseInt(idx, 10));
-            }
-
             nextLevel() {
                 const levels = this.getActiveLevels();
-                if (this.currentLevelIndex < levels.length - 1) {
+                if (this.currentLevelIndex + 1 < levels.length) {
                     this.loadLevel(this.currentLevelIndex + 1);
+                } else if (this.currentModule === 1) {
+                    this.unlockModule2();
+                    alert("🎉 Parabéns! Você concluiu todos os níveis do Módulo de Mouse! O Módulo 2 (Digitação) foi liberado.");
+                    this.switchToModule(2);
                 } else {
-                    if (this.currentModule === 1) {
-                        this.unlockModule2();
-                        sound.playFanfare();
-                        if (typeof confetti === 'function') confetti({ particleCount: 120, spread: 80 });
-                        alert("🎉 PARABÉNS! Você concluiu o Módulo do Mouse! O Módulo 2 de DIGITAÇÃO foi desbloqueado!");
-                        this.switchToModule(2);
-                    } else {
-                        this.showCertificate();
-                    }
+                    this.showCertificate();
                 }
             }
 
-            addHit() {
-                this.score++;
-                this.levelScore++;
+            registerSuccess(amount = 1) {
+                this.levelScore += amount;
+                this.score += amount;
                 sound.playSuccess();
-                this.updateProgressUI();
+                this.updateStatsDisplay();
 
                 if (this.levelScore >= this.requiredScore) {
                     this.completeLevel();
                 }
             }
 
-            addError() {
+            registerError() {
                 this.errors++;
                 sound.playError();
-                this.updateProgressUI();
-                
+                this.updateStatsDisplay();
+
                 const workspace = document.getElementById('workspace');
                 workspace.classList.add('animate-shake');
                 setTimeout(() => workspace.classList.remove('animate-shake'), 400);
             }
 
-            updateProgressUI() {
+            updateStatsDisplay() {
                 document.getElementById('score-display').textContent = this.score;
                 document.getElementById('errors-display').textContent = this.errors;
-                document.getElementById('target-count-display').textContent = `${this.levelScore} / ${this.requiredScore}`;
 
-                const totalAttempts = this.score + this.errors;
-                const accuracy = totalAttempts > 0 ? Math.round((this.score / totalAttempts) * 100) : 100;
+                const totalActions = this.score + this.errors;
+                const accuracy = totalActions === 0 ? 100 : Math.round((this.score / totalActions) * 100);
                 document.getElementById('accuracy-display').textContent = `${accuracy}%`;
 
-                const percentage = Math.min(100, Math.round((this.levelScore / this.requiredScore) * 100));
-                document.getElementById('level-progress-bar').style.width = `${percentage}%`;
+                document.getElementById('target-count-display').textContent = `${this.levelScore} / ${this.requiredScore}`;
+
+                const progressPct = Math.min(100, Math.round((this.levelScore / this.requiredScore) * 100));
+                document.getElementById('level-progress-bar').style.width = `${progressPct}%`;
             }
 
             completeLevel() {
                 this.stopTimer();
                 sound.playFanfare();
 
-                if (typeof confetti === 'function') {
-                    confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+                if (window.confetti) {
+                    confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
                 }
 
+                const levels = this.getActiveLevels();
+                if (this.currentLevelIndex === levels.length - 1 && this.currentModule === 2) {
+                    this.showCertificate();
+                } else {
+                    this.showModal();
+                }
+            }
+
+            showModal() {
+                const modal = document.getElementById('completion-modal');
                 document.getElementById('modal-time').textContent = document.getElementById('timer-display').textContent;
                 document.getElementById('modal-errors').textContent = this.errors;
-                document.getElementById('completion-modal').classList.remove('hidden');
-
-                document.getElementById('next-level-btn').classList.remove('hidden');
+                modal.classList.remove('hidden');
             }
 
             hideModal() {
@@ -694,39 +695,14 @@
             }
 
             showCertificate() {
-                const totalAttempts = this.score + this.errors;
-                const accuracy = totalAttempts > 0 ? Math.round((this.score / totalAttempts) * 100) : 100;
-
                 document.getElementById('cert-score').textContent = this.score;
                 document.getElementById('cert-errors').textContent = this.errors;
-                document.getElementById('cert-accuracy').textContent = `${accuracy}%`;
-
+                document.getElementById('cert-accuracy').textContent = document.getElementById('accuracy-display').textContent;
                 document.getElementById('certificate-modal').classList.remove('hidden');
-
-                if (typeof confetti === 'function') {
-                    confetti({ particleCount: 180, spread: 100, origin: { y: 0.5 } });
-                }
             }
 
             hideCertificate() {
                 document.getElementById('certificate-modal').classList.add('hidden');
-            }
-
-            showContextMenu(x, y, targetData = null) {
-                const menu = document.getElementById('custom-context-menu');
-                const workspace = document.getElementById('workspace').getBoundingClientRect();
-                
-                let posX = x - workspace.left;
-                let posY = y - workspace.top;
-
-                if (posX + 210 > workspace.width) posX = workspace.width - 220;
-                if (posY + 150 > workspace.height) posY = workspace.height - 160;
-
-                menu.style.left = `${posX}px`;
-                menu.style.top = `${posY}px`;
-                menu.classList.remove('hidden');
-
-                this.activeContextMenuTarget = targetData;
             }
 
             hideContextMenu() {
@@ -734,242 +710,288 @@
                 if (menu) menu.classList.add('hidden');
             }
 
-            handleContextMenuSelection(option) {
-                this.hideContextMenu();
-                if (this.onContextMenuChoice) {
-                    this.onContextMenuChoice(option);
-                }
-            }
-
-            // --- MODULE 1: MOUSE LEVEL RENDERING ---
+            // ==========================================
+            // MÓDULO 1: RENDERIZAÇÕES DO MOUSE
+            // ==========================================
 
             renderMouseL1() {
-                const area = document.getElementById('interactive-area');
+                const container = document.getElementById('interactive-area');
                 const btn = document.createElement('button');
-                btn.className = 'w-40 h-40 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg flex flex-col items-center justify-center gap-2 transform active:scale-95 transition animate-pulse-ring cursor-pointer border-4 border-blue-200';
-                btn.innerHTML = `<i class="fa-solid fa-hand-pointer text-5xl"></i><span class="font-bold text-lg">Clique Aqui</span>`;
-                
+                btn.className = "bg-amber-500 hover:bg-amber-600 text-white font-bold text-lg px-8 py-5 rounded-2xl shadow-lg transform active:scale-95 transition animate-bounce cursor-pointer flex items-center gap-3";
+                btn.innerHTML = `<i class="fa-solid fa-hand-pointer text-2xl"></i> Clique em Mim!`;
                 btn.onclick = () => {
-                    this.addHit();
-                    if (this.levelScore < this.requiredScore) {
-                        btn.classList.remove('animate-pulse-ring');
-                        setTimeout(() => btn.classList.add('animate-pulse-ring'), 50);
-                    } else {
-                        btn.remove();
-                    }
+                    this.registerSuccess();
+                    btn.classList.remove('animate-bounce');
+                    btn.className = "bg-emerald-500 text-white font-bold text-lg px-8 py-5 rounded-2xl shadow-lg transition flex items-center gap-3";
+                    btn.innerHTML = `<i class="fa-solid fa-circle-check text-2xl"></i> Excelente!`;
+                    btn.onclick = null;
                 };
-                area.appendChild(btn);
+                container.appendChild(btn);
             }
 
             renderMouseL2() {
-                const area = document.getElementById('interactive-area');
-                area.onclick = (e) => { if (e.target === area) this.addError(); };
-
-                const spawn = () => {
-                    area.innerHTML = '';
+                const container = document.getElementById('interactive-area');
+                const spawnTarget = () => {
+                    container.innerHTML = '';
                     if (this.levelScore >= this.requiredScore) return;
-                    const btn = document.createElement('button');
-                    btn.className = 'w-16 h-16 bg-amber-400 hover:bg-amber-500 text-amber-950 rounded-full shadow-md flex items-center justify-center font-bold absolute transform active:scale-90 transition cursor-pointer';
-                    btn.innerHTML = `<i class="fa-solid fa-bullseye text-2xl"></i>`;
-                    
-                    const maxX = area.clientWidth - 90;
-                    const maxY = area.clientHeight - 90;
-                    btn.style.left = `${Math.max(20, Math.floor(Math.random() * maxX))}px`;
-                    btn.style.top = `${Math.max(20, Math.floor(Math.random() * maxY))}px`;
 
-                    btn.onclick = (e) => { e.stopPropagation(); this.addHit(); spawn(); };
-                    area.appendChild(btn);
+                    const btn = document.createElement('button');
+                    btn.className = "absolute bg-rose-500 hover:bg-rose-600 text-white font-bold text-sm p-4 rounded-full shadow-md transform active:scale-90 transition cursor-pointer flex items-center justify-center animate-pulse-ring";
+                    btn.style.left = `${Math.floor(Math.random() * 70) + 15}%`;
+                    btn.style.top = `${Math.floor(Math.random() * 60) + 20}%`;
+                    btn.innerHTML = `<i class="fa-solid fa-bullseye text-xl"></i>`;
+                    btn.onclick = () => {
+                        this.registerSuccess();
+                        spawnTarget();
+                    };
+                    container.appendChild(btn);
                 };
-                spawn();
+                spawnTarget();
             }
 
             renderMouseL3() {
-                const area = document.getElementById('interactive-area');
-                const spawnFolder = () => {
-                    area.innerHTML = '';
-                    if (this.levelScore >= this.requiredScore) return;
+                const container = document.getElementById('interactive-area');
+                container.className = "w-full h-full flex items-center justify-center gap-8 flex-wrap";
+
+                for (let i = 0; i < 3; i++) {
                     const folder = document.createElement('div');
-                    folder.className = 'flex flex-col items-center justify-center gap-2 p-5 bg-amber-50 border-2 border-dashed border-amber-300 rounded-2xl cursor-pointer hover:bg-amber-100 transition';
-                    folder.innerHTML = `<i class="fa-solid fa-folder text-amber-500 text-8xl drop-shadow"></i><span class="font-bold text-amber-900 text-lg">2 Cliques Rápidos para Abrir</span>`;
-                    folder.ondblclick = () => { this.addHit(); spawnFolder(); };
-                    area.appendChild(folder);
-                };
-                spawnFolder();
+                    folder.className = "flex flex-col items-center justify-center bg-amber-50 border-2 border-dashed border-amber-300 p-6 rounded-2xl hover:bg-amber-100 transition cursor-pointer group";
+                    folder.innerHTML = `
+                        <i class="fa-solid fa-folder text-6xl text-amber-400 group-hover:scale-110 transition"></i>
+                        <span class="text-xs font-bold text-slate-600 mt-2">Pasta ${i + 1} (Clique Duplo)</span>
+                    `;
+
+                    let clickCount = 0;
+                    let clickTimer = null;
+
+                    folder.onclick = () => {
+                        clickCount++;
+                        if (clickCount === 1) {
+                            clickTimer = setTimeout(() => { clickCount = 0; }, 400);
+                        } else if (clickCount === 2) {
+                            clearTimeout(clickTimer);
+                            clickCount = 0;
+                            folder.innerHTML = `
+                                <i class="fa-solid fa-folder-open text-6xl text-emerald-500 transition"></i>
+                                <span class="text-xs font-bold text-emerald-600 mt-2">Aberta com Sucesso!</span>
+                            `;
+                            folder.className = "flex flex-col items-center justify-center bg-emerald-50 border-2 border-emerald-400 p-6 rounded-2xl pointer-events-none";
+                            this.registerSuccess();
+                        }
+                    };
+                    container.appendChild(folder);
+                }
             }
 
             renderMouseL4() {
-                const area = document.getElementById('interactive-area');
-                const spawnItem = () => {
-                    area.innerHTML = '';
-                    if (this.levelScore >= this.requiredScore) return;
-                    const item = document.createElement('div');
-                    item.className = 'flex flex-col items-center justify-center p-6 bg-slate-50 border-2 border-indigo-200 rounded-2xl cursor-pointer hover:bg-indigo-50 transition';
-                    item.innerHTML = `<i class="fa-solid fa-mouse-pointer text-indigo-500 text-6xl mb-2"></i><span class="font-bold text-slate-700">Clique DIREITO aqui</span>`;
-                    item.oncontextmenu = (e) => {
-                        e.preventDefault(); e.stopPropagation();
-                        this.showContextMenu(e.clientX, e.clientY);
-                        this.addHit();
-                        setTimeout(() => spawnItem(), 500);
+                const container = document.getElementById('interactive-area');
+                container.className = "w-full h-full flex items-center justify-center gap-6 flex-wrap";
+
+                for (let i = 0; i < 3; i++) {
+                    const card = document.createElement('div');
+                    card.className = "bg-indigo-50 border-2 border-indigo-200 p-6 rounded-2xl text-center cursor-pointer hover:border-indigo-400 transition";
+                    card.innerHTML = `
+                        <i class="fa-solid fa-mouse text-4xl text-indigo-500 mb-2"></i>
+                        <p class="text-xs font-bold text-indigo-900">Item ${i + 1}</p>
+                        <p class="text-[10px] text-slate-500 mt-1">Clique com o Botão Direito</p>
+                    `;
+
+                    card.oncontextmenu = (e) => {
+                        e.preventDefault();
+                        if (!card.dataset.completed) {
+                            card.dataset.completed = "true";
+                            card.className = "bg-emerald-50 border-2 border-emerald-400 p-6 rounded-2xl text-center pointer-events-none";
+                            card.innerHTML = `
+                                <i class="fa-solid fa-circle-check text-4xl text-emerald-500 mb-2"></i>
+                                <p class="text-xs font-bold text-emerald-800">Menu Aberto!</p>
+                            `;
+                            this.registerSuccess();
+                        }
                     };
-                    item.onclick = () => this.addError();
-                    area.appendChild(item);
-                };
-                spawnItem();
+
+                    card.onclick = () => {
+                        if (!card.dataset.completed) this.registerError();
+                    };
+                    container.appendChild(card);
+                }
             }
 
             renderMouseL5() {
-                const area = document.getElementById('interactive-area');
-                area.className = 'w-full h-full relative flex items-center justify-around p-6';
-                const spawn = () => {
-                    area.innerHTML = '';
-                    if (this.levelScore >= this.requiredScore) return;
+                const container = document.getElementById('interactive-area');
+                container.className = "w-full h-full flex justify-between items-center px-12 relative";
 
-                    const file = document.createElement('div');
-                    file.draggable = true;
-                    file.className = 'flex flex-col items-center justify-center p-4 bg-white border-2 border-indigo-400 rounded-2xl shadow-md cursor-grab active:cursor-grabbing hover:scale-105 transition';
-                    file.innerHTML = `<i class="fa-solid fa-file-lines text-indigo-500 text-5xl mb-1"></i><span class="font-bold text-xs text-slate-700">Arraste para Lixeira</span>`;
+                const trash = document.createElement('div');
+                trash.className = "flex flex-col items-center justify-center p-6 bg-slate-100 border-4 border-dashed border-slate-300 rounded-3xl transition";
+                trash.innerHTML = `
+                    <i class="fa-solid fa-trash-can text-6xl text-slate-400"></i>
+                    <span class="text-xs font-bold text-slate-500 mt-2">Lixeira</span>
+                `;
 
-                    const dropzone = document.createElement('div');
-                    dropzone.className = 'w-40 h-40 border-4 border-dashed border-rose-300 bg-rose-50 rounded-2xl flex flex-col items-center justify-center gap-2 text-rose-600 transition';
-                    dropzone.innerHTML = `<i class="fa-solid fa-trash-can text-5xl"></i><span class="font-bold text-sm">Lixeira</span>`;
-
-                    file.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/plain', 'trash'));
-                    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag-over'); });
-                    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
-                    dropzone.addEventListener('drop', (e) => {
-                        e.preventDefault(); dropzone.classList.remove('drag-over');
-                        this.addHit(); spawn();
-                    });
-
-                    area.appendChild(file);
-                    area.appendChild(dropzone);
+                trash.ondragover = (e) => {
+                    e.preventDefault();
+                    trash.classList.add('drag-over');
                 };
-                spawn();
+
+                trash.ondragleave = () => {
+                    trash.classList.remove('drag-over');
+                };
+
+                trash.ondrop = (e) => {
+                    e.preventDefault();
+                    trash.classList.remove('drag-over');
+                    const fileId = e.dataTransfer.getData('text/plain');
+                    const draggedElem = document.getElementById(fileId);
+                    if (draggedElem) {
+                        draggedElem.remove();
+                        this.registerSuccess();
+                    }
+                };
+
+                const filesContainer = document.createElement('div');
+                filesContainer.className = "flex flex-col gap-4";
+
+                for (let i = 0; i < 3; i++) {
+                    const file = document.createElement('div');
+                    file.id = `drag-file-${i}`;
+                    file.draggable = true;
+                    file.className = "bg-white border-2 border-indigo-200 p-4 rounded-2xl shadow-sm flex items-center gap-3 cursor-grab active:cursor-grabbing hover:shadow-md transition";
+                    file.innerHTML = `
+                        <i class="fa-solid fa-file-lines text-2xl text-indigo-500"></i>
+                        <span class="text-xs font-bold text-slate-700">Documento_${i + 1}.pdf</span>
+                    `;
+
+                    file.ondragstart = (e) => {
+                        e.dataTransfer.setData('text/plain', file.id);
+                    };
+                    filesContainer.appendChild(file);
+                }
+
+                container.appendChild(filesContainer);
+                container.appendChild(trash);
             }
 
             renderMouseL6() {
-                const area = document.getElementById('interactive-area');
-                area.className = 'w-full h-full relative';
+                const container = document.getElementById('interactive-area');
+                container.className = "w-full h-full flex flex-col items-center justify-start overflow-y-auto custom-scrollbar p-6 relative border-2 border-slate-200 rounded-2xl bg-slate-50";
 
-                const scrollContainer = document.createElement('div');
-                scrollContainer.className = 'w-full h-full overflow-y-auto custom-scrollbar p-6 space-y-6 bg-slate-50 rounded-xl border border-slate-200';
+                const spacerTop = document.createElement('div');
+                spacerTop.className = "min-h-[600px] w-full flex flex-col items-center justify-center text-slate-400 font-bold gap-2";
+                spacerTop.innerHTML = `<i class="fa-solid fa-arrow-down animate-bounce text-3xl"></i><span>Role a roda do mouse para baixo...</span>`;
 
-                let contentHtml = `<div class="p-4 bg-indigo-50 text-indigo-700 font-bold rounded-xl text-center"><i class="fa-solid fa-arrow-down mr-2"></i> Role a roda do mouse para baixo!</div>`;
-                for (let i = 1; i <= 8; i++) {
-                    contentHtml += `<div class="p-4 bg-white rounded-xl border border-slate-200 text-slate-500 font-medium text-sm">Documento de treino #${i}... Continue rolando a roda.</div>`;
-                }
-
-                scrollContainer.innerHTML = contentHtml;
-
-                const hiddenBtnContainer = document.createElement('div');
-                hiddenBtnContainer.className = 'p-6 bg-emerald-100 border-2 border-emerald-400 rounded-2xl text-center flex flex-col items-center gap-3 my-8';
-                hiddenBtnContainer.innerHTML = `
-                    <span class="font-bold text-emerald-900 text-base">Você encontrou o código oculto!</span>
-                    <button id="scroll-target-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl shadow cursor-pointer">
-                        <i class="fa-solid fa-check-circle mr-2"></i> Confirmar Leitura
-                    </button>
-                `;
-
-                scrollContainer.appendChild(hiddenBtnContainer);
-                area.appendChild(scrollContainer);
-
-                document.getElementById('scroll-target-btn').onclick = () => {
-                    this.addHit();
-                    if (this.levelScore < this.requiredScore) scrollContainer.scrollTop = 0;
+                const targetBtn = document.createElement('button');
+                targetBtn.className = "bg-amber-500 hover:bg-amber-600 text-white font-bold px-8 py-4 rounded-2xl shadow-lg my-8 cursor-pointer transition";
+                targetBtn.innerHTML = `<i class="fa-solid fa-check text-xl mr-2"></i> Encontrei! Clique Aqui`;
+                targetBtn.onclick = () => {
+                    this.registerSuccess();
+                    targetBtn.className = "bg-emerald-500 text-white font-bold px-8 py-4 rounded-2xl shadow-lg my-8 pointer-events-none";
+                    targetBtn.innerHTML = `Concluído!`;
                 };
+
+                const spacerBottom = document.createElement('div');
+                spacerBottom.className = "min-h-[400px] w-full";
+
+                container.appendChild(spacerTop);
+                container.appendChild(targetBtn);
+                container.appendChild(spacerBottom);
             }
 
             renderMouseL7() {
-                const area = document.getElementById('interactive-area');
-                area.className = 'w-full h-full flex flex-col justify-center items-center gap-4';
-                area.innerHTML = `
-                    <div class="bg-indigo-50 border border-indigo-200 p-3 rounded-xl text-indigo-800 text-xs font-semibold text-center mb-2">
-                        <i class="fa-solid fa-circle-info mr-1"></i> Aperte na RODA DO MOUSE (Botão do Meio) sobre cada aba para fechar.
-                    </div>
-                    <div id="tabs-bar" class="flex flex-wrap justify-center gap-3 max-w-xl"></div>
-                `;
+                const container = document.getElementById('interactive-area');
+                container.className = "w-full h-full flex items-center justify-center gap-4 flex-wrap";
 
-                const tabsBar = document.getElementById('tabs-bar');
-                for (let i = 1; i <= 4; i++) {
+                for (let i = 0; i < 4; i++) {
                     const tab = document.createElement('div');
-                    tab.className = 'bg-slate-200 hover:bg-slate-300 border border-slate-300 px-4 py-2.5 rounded-xl flex items-center gap-3 cursor-pointer transition text-slate-700 font-bold text-sm shadow-sm';
-                    tab.innerHTML = `<i class="fa-solid fa-globe text-indigo-500"></i><span>Página Navegador #${i}</span><span class="text-xs bg-slate-300 rounded-full w-5 h-5 flex items-center justify-center">✕</span>`;
+                    tab.className = "bg-white border-2 border-slate-200 px-6 py-4 rounded-xl shadow-sm flex items-center gap-3 cursor-pointer hover:border-amber-400 transition";
+                    tab.innerHTML = `
+                        <i class="fa-solid fa-globe text-indigo-500"></i>
+                        <span class="text-xs font-bold text-slate-700">Aba ${i + 1}</span>
+                        <i class="fa-solid fa-xmark text-slate-400 ml-2"></i>
+                    `;
 
-                    tab.addEventListener('mousedown', (e) => {
+                    tab.onmousedown = (e) => {
                         if (e.button === 1) { // Middle click
                             e.preventDefault();
                             tab.remove();
-                            this.addHit();
+                            this.registerSuccess();
                         } else if (e.button === 0) {
-                            this.addError();
+                            this.registerError();
                         }
-                    });
-                    tabsBar.appendChild(tab);
+                    };
+                    container.appendChild(tab);
                 }
             }
 
+            // AJUSTADO: Alvo em movimento mantido estritamente dentro dos limites da tela/container
             renderMouseL8() {
-                const area = document.getElementById('interactive-area');
-                area.innerHTML = '';
+                const container = document.getElementById('interactive-area');
+                container.className = "w-full h-full relative overflow-hidden flex items-center justify-center";
 
-                const target = document.createElement('button');
-                target.className = 'w-16 h-16 bg-rose-500 hover:bg-rose-600 text-white rounded-full shadow-lg flex items-center justify-center font-bold absolute transition-all duration-300 cursor-pointer';
-                target.innerHTML = `<i class="fa-solid fa-bullseye text-2xl"></i>`;
+                const btn = document.createElement('button');
+                btn.className = "absolute bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-5 rounded-full shadow-xl transition-transform duration-300 ease-out cursor-pointer flex items-center justify-center";
+                btn.innerHTML = `<i class="fa-solid fa-ghost text-2xl"></i>`;
 
-                let posX = 40, posY = 40, dirX = 1, dirY = 1;
+                container.appendChild(btn);
 
-                this.movingInterval = setInterval(() => {
-                    const maxX = area.clientWidth - 80;
-                    const maxY = area.clientHeight - 80;
-                    posX += 8 * dirX;
-                    posY += 8 * dirY;
-                    if (posX <= 10 || posX >= maxX) dirX *= -1;
-                    if (posY <= 10 || posY >= maxY) dirY *= -1;
-                    target.style.left = `${posX}px`;
-                    target.style.top = `${posY}px`;
-                }, 30);
+                let posX = 0;
+                let posY = 0;
 
-                target.onclick = (e) => {
-                    e.stopPropagation();
-                    this.addHit();
-                    posX = Math.random() * (area.clientWidth - 100);
-                    posY = Math.random() * (area.clientHeight - 100);
+                const move = () => {
+                    const cWidth = container.clientWidth || 600;
+                    const cHeight = container.clientHeight || 400;
+                    const btnWidth = btn.offsetWidth || 60;
+                    const btnHeight = btn.offsetHeight || 60;
+
+                    // Mantém margem interna para evitar sair do container
+                    const maxLeft = (cWidth / 2) - (btnWidth / 2) - 20;
+                    const maxTop = (cHeight / 2) - (btnHeight / 2) - 20;
+
+                    posX = (Math.random() * (maxLeft * 2)) - maxLeft;
+                    posY = (Math.random() * (maxTop * 2)) - maxTop;
+
+                    btn.style.transform = `translate(${posX}px, ${posY}px)`;
                 };
-                area.appendChild(target);
+
+                move();
+                this.movingInterval = setInterval(move, 900);
+
+                btn.onclick = () => {
+                    this.registerSuccess();
+                    if (this.levelScore >= this.requiredScore) {
+                        clearInterval(this.movingInterval);
+                        btn.style.transform = `translate(0px, 0px)`;
+                        btn.className = "bg-emerald-500 text-white font-bold p-5 rounded-full shadow-xl pointer-events-none";
+                        btn.innerHTML = `<i class="fa-solid fa-check text-2xl"></i>`;
+                    } else {
+                        move();
+                    }
+                };
             }
 
             renderMouseL9() {
-                const area = document.getElementById('interactive-area');
-                area.className = 'w-full h-full relative select-none bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden';
+                const container = document.getElementById('interactive-area');
+                container.className = "w-full h-full relative select-none bg-slate-50 border-2 border-slate-200 rounded-2xl overflow-hidden";
 
-                const dotsContainer = document.createElement('div');
-                dotsContainer.className = 'w-full h-full relative';
-
-                // Spawn dots
-                const dots = [];
+                const targets = [];
                 for (let i = 0; i < 3; i++) {
-                    const dot = document.createElement('div');
-                    dot.className = 'w-8 h-8 bg-amber-400 border-2 border-amber-600 rounded-full absolute shadow flex items-center justify-center text-xs font-bold text-amber-950';
-                    dot.textContent = i + 1;
-                    dot.style.left = `${100 + i * 140}px`;
-                    dot.style.top = `${120 + (i % 2) * 80}px`;
-                    dotsContainer.appendChild(dot);
-                    dots.push(dot);
+                    const circle = document.createElement('div');
+                    circle.className = "absolute w-12 h-12 bg-amber-400 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md transition-all";
+                    circle.style.left = `${20 + i * 30}%`;
+                    circle.style.top = `${30 + (i % 2) * 25}%`;
+                    circle.innerHTML = i + 1;
+                    container.appendChild(circle);
+                    targets.push(circle);
                 }
 
-                // Selection Box
+                let isSelecting = false;
+                let startX = 0, startY = 0;
                 const selectionBox = document.createElement('div');
-                selectionBox.className = 'absolute border-2 border-blue-500 bg-blue-500/20 hidden pointer-events-none rounded';
+                selectionBox.className = "absolute border-2 border-blue-500 bg-blue-500/20 hidden pointer-events-none rounded-lg";
+                container.appendChild(selectionBox);
 
-                area.appendChild(dotsContainer);
-                area.appendChild(selectionBox);
-
-                let startX = 0, startY = 0, isDragging = false;
-
-                area.onmousedown = (e) => {
-                    if (e.button !== 0) return;
-                    isDragging = true;
-                    const rect = area.getBoundingClientRect();
+                container.onmousedown = (e) => {
+                    if (e.target !== container && e.target !== selectionBox) return;
+                    isSelecting = true;
+                    const rect = container.getBoundingClientRect();
                     startX = e.clientX - rect.left;
                     startY = e.clientY - rect.top;
 
@@ -980,444 +1002,516 @@
                     selectionBox.classList.remove('hidden');
                 };
 
-                area.onmousemove = (e) => {
-                    if (!isDragging) return;
-                    const rect = area.getBoundingClientRect();
+                container.onmousemove = (e) => {
+                    if (!isSelecting) return;
+                    const rect = container.getBoundingClientRect();
                     const currentX = e.clientX - rect.left;
                     const currentY = e.clientY - rect.top;
 
                     const width = Math.abs(currentX - startX);
                     const height = Math.abs(currentY - startY);
-                    const left = Math.min(startX, currentX);
-                    const top = Math.min(startY, currentY);
+                    const left = Math.min(currentX, startX);
+                    const top = Math.min(currentY, startY);
 
-                    selectionBox.style.left = `${left}px`;
-                    selectionBox.style.top = `${top}px`;
                     selectionBox.style.width = `${width}px`;
                     selectionBox.style.height = `${height}px`;
+                    selectionBox.style.left = `${left}px`;
+                    selectionBox.style.top = `${top}px`;
                 };
 
-                area.onmouseup = () => {
-                    if (!isDragging) return;
-                    isDragging = false;
+                container.onmouseup = () => {
+                    if (!isSelecting) return;
+                    isSelecting = false;
                     selectionBox.classList.add('hidden');
 
                     const boxRect = selectionBox.getBoundingClientRect();
-                    let caught = 0;
-                    dots.forEach(dot => {
-                        const dRect = dot.getBoundingClientRect();
+
+                    targets.forEach(circle => {
+                        if (circle.dataset.selected) return;
+                        const cRect = circle.getBoundingClientRect();
                         if (
-                            dRect.left >= boxRect.left &&
-                            dRect.right <= boxRect.right &&
-                            dRect.top >= boxRect.top &&
-                            dRect.bottom <= boxRect.bottom
+                            cRect.left >= boxRect.left &&
+                            cRect.right <= boxRect.right &&
+                            cRect.top >= boxRect.top &&
+                            cRect.bottom <= boxRect.bottom
                         ) {
-                            caught++;
+                            circle.dataset.selected = "true";
+                            circle.className = "absolute w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md transition-all scale-110";
+                            circle.innerHTML = `<i class="fa-solid fa-check"></i>`;
+                            this.registerSuccess();
                         }
                     });
-
-                    if (caught >= 3) {
-                        this.addHit();
-                        if (this.levelScore < this.requiredScore) {
-                            this.renderMouseL9();
-                        }
-                    } else {
-                        this.addError();
-                    }
                 };
             }
 
             renderMouseL10() {
-                const area = document.getElementById('interactive-area');
-                area.className = 'w-full h-full flex flex-col items-center justify-center p-4';
-                area.innerHTML = `
-                    <div class="text-center mb-2">
-                        <span class="text-xs font-bold text-slate-500 uppercase">Segure o clique do mouse e pinte 70% do quadro</span>
-                    </div>
-                    <canvas id="paint-canvas" width="500" height="260" class="bg-slate-100 border-2 border-dashed border-indigo-300 rounded-2xl shadow-inner"></canvas>
-                    <div class="w-full max-w-md bg-slate-200 h-4 rounded-full mt-3 overflow-hidden border border-slate-300">
-                        <div id="paint-progress" class="bg-indigo-600 h-full w-0 transition-all"></div>
-                    </div>
-                `;
+                const container = document.getElementById('interactive-area');
+                container.className = "w-full h-full flex flex-col items-center justify-center relative";
 
-                const canvas = document.getElementById('paint-canvas');
+                const canvas = document.createElement('canvas');
+                canvas.id = "paint-canvas";
+                canvas.width = 500;
+                canvas.height = 300;
+                canvas.className = "bg-white border-2 border-slate-300 rounded-2xl shadow-inner";
+                container.appendChild(canvas);
+
                 const ctx = canvas.getContext('2d');
-                let isPainting = false;
-                let paintedPixels = 0;
-
-                ctx.strokeStyle = '#4f46e5';
-                ctx.lineWidth = 24;
+                ctx.lineWidth = 15;
                 ctx.lineCap = 'round';
+                ctx.strokeStyle = '#3b82f6';
 
-                const getCanvasCoords = (e) => {
-                    const rect = canvas.getBoundingClientRect();
-                    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+                let painting = false;
+                let drawnPixels = 0;
+
+                const startPosition = (e) => {
+                    painting = true;
+                    draw(e);
                 };
 
-                canvas.onmousedown = (e) => {
-                    isPainting = true;
-                    const pos = getCanvasCoords(e);
+                const finishedPosition = () => {
+                    painting = false;
                     ctx.beginPath();
-                    ctx.moveTo(pos.x, pos.y);
-                };
-
-                canvas.onmousemove = (e) => {
-                    if (!isPainting) return;
-                    const pos = getCanvasCoords(e);
-                    ctx.lineTo(pos.x, pos.y);
-                    ctx.stroke();
-
-                    // Check coverage approximation
-                    paintedPixels += 1;
-                    const progress = Math.min(100, Math.round((paintedPixels / 350) * 100));
-                    document.getElementById('paint-progress').style.width = `${progress}%`;
-
-                    if (progress >= 70 && this.levelScore < this.requiredScore) {
-                        isPainting = false;
-                        this.addHit();
+                    if (drawnPixels > 150 && this.levelScore === 0) {
+                        this.registerSuccess();
                     }
                 };
 
-                canvas.onmouseup = () => isPainting = false;
+                const draw = (e) => {
+                    if (!painting) return;
+                    const rect = canvas.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+
+                    ctx.lineTo(x, y);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    drawnPixels++;
+                };
+
+                canvas.addEventListener('mousedown', startPosition);
+                canvas.addEventListener('mouseup', finishedPosition);
+                canvas.addEventListener('mousemove', draw);
             }
 
             renderMouseL11() {
-                const area = document.getElementById('interactive-area');
-                area.className = 'w-full h-full flex flex-col items-center justify-center p-6';
+                const container = document.getElementById('interactive-area');
+                container.className = "w-full h-full flex flex-col items-center justify-center gap-4";
 
-                let zoomValue = 20;
-                area.innerHTML = `
-                    <div id="zoom-box" class="w-full max-w-md bg-white border-2 border-indigo-200 p-8 rounded-3xl shadow-sm flex flex-col items-center gap-5 text-center cursor-ns-resize">
-                        <i class="fa-solid fa-magnifying-glass-plus text-indigo-500 text-6xl"></i>
-                        <div>
-                            <h3 class="text-xl font-bold text-slate-800">Ajuste o Zoom em 100%</h3>
-                            <p class="text-xs text-slate-500 mt-1">Role a roda do mouse para cima no quadro.</p>
-                        </div>
-                        <div class="w-full bg-slate-100 rounded-full h-6 p-1 border border-slate-200 relative overflow-hidden">
-                            <div id="zoom-fill" class="bg-indigo-600 h-full rounded-full transition-all duration-150" style="width: ${zoomValue}%"></div>
-                            <span id="zoom-text" class="absolute inset-0 flex items-center justify-center text-xs font-bold text-slate-700">${zoomValue}%</span>
-                        </div>
-                        <button id="confirm-zoom-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-xl shadow transition hidden">
-                            Confirmar 100%
-                        </button>
-                    </div>
-                `;
+                const zoomBox = document.createElement('div');
+                zoomBox.className = "w-64 h-64 bg-indigo-50 border-4 border-indigo-300 rounded-3xl flex flex-col items-center justify-center shadow-inner cursor-ns-resize select-none";
 
-                const box = document.getElementById('zoom-box');
-                const fill = document.getElementById('zoom-fill');
-                const text = document.getElementById('zoom-text');
-                const btn = document.getElementById('confirm-zoom-btn');
+                let zoomLevel = 40;
+                const updateZoomUI = () => {
+                    zoomBox.innerHTML = `
+                        <i class="fa-solid fa-magnifying-glass text-indigo-500 transition-all duration-150" style="font-size: ${zoomLevel / 1.5}px"></i>
+                        <span class="text-sm font-bold text-indigo-900 mt-3">Zoom: ${zoomLevel}%</span>
+                        <span class="text-[11px] text-slate-500">Role para atingir 100%</span>
+                    `;
+                };
 
-                box.addEventListener('wheel', (e) => {
+                updateZoomUI();
+
+                zoomBox.onwheel = (e) => {
                     e.preventDefault();
-                    if (e.deltaY < 0) zoomValue = Math.min(100, zoomValue + 10);
-                    else zoomValue = Math.max(10, zoomValue - 10);
+                    if (e.deltaY < 0) {
+                        zoomLevel = Math.min(100, zoomLevel + 10);
+                    } else {
+                        zoomLevel = Math.max(20, zoomLevel - 10);
+                    }
+                    updateZoomUI();
 
-                    fill.style.width = `${zoomValue}%`;
-                    text.textContent = `${zoomValue}%`;
-                    if (zoomValue === 100) btn.classList.remove('hidden');
-                    else btn.classList.add('hidden');
-                });
-
-                btn.onclick = () => {
-                    this.addHit();
-                    if (this.levelScore < this.requiredScore) {
-                        zoomValue = 20;
-                        fill.style.width = `${zoomValue}%`;
-                        text.textContent = `${zoomValue}%`;
-                        btn.classList.add('hidden');
+                    if (zoomLevel === 100 && this.levelScore < this.requiredScore) {
+                        this.registerSuccess(3);
                     }
                 };
+
+                container.appendChild(zoomBox);
             }
 
             renderMouseL12() {
-                this.renderMouseL5(); // Reuses multi drag
+                const container = document.getElementById('interactive-area');
+                container.className = "w-full h-full flex flex-col justify-between p-4";
+
+                const foldersArea = document.createElement('div');
+                foldersArea.className = "flex justify-around items-center w-full";
+
+                const filesArea = document.createElement('div');
+                filesArea.className = "flex justify-center gap-6 items-center w-full bg-slate-50 p-4 rounded-2xl border border-slate-200";
+
+                const categories = [
+                    { type: 'image', name: 'Imagens', icon: 'fa-image', color: 'text-emerald-500', bg: 'bg-emerald-50', border: 'border-emerald-300' },
+                    { type: 'music', name: 'Músicas', icon: 'fa-music', color: 'text-purple-500', bg: 'bg-purple-50', border: 'border-purple-300' }
+                ];
+
+                categories.forEach(cat => {
+                    const f = document.createElement('div');
+                    f.className = `${cat.bg} border-2 border-dashed ${cat.border} p-5 rounded-2xl flex flex-col items-center justify-center min-w-[140px] transition`;
+                    f.innerHTML = `
+                        <i class="fa-solid ${cat.icon} text-4xl ${cat.color} mb-2"></i>
+                        <span class="text-xs font-bold text-slate-700">${cat.name}</span>
+                    `;
+
+                    f.ondragover = (e) => { e.preventDefault(); f.classList.add('drag-over'); };
+                    f.ondragleave = () => f.classList.remove('drag-over');
+                    f.ondrop = (e) => {
+                        e.preventDefault();
+                        f.classList.remove('drag-over');
+                        const itemType = e.dataTransfer.getData('type');
+                        const itemId = e.dataTransfer.getData('id');
+
+                        if (itemType === cat.type) {
+                            document.getElementById(itemId)?.remove();
+                            this.registerSuccess();
+                        } else {
+                            this.registerError();
+                        }
+                    };
+                    foldersArea.appendChild(f);
+                });
+
+                const itemsData = [
+                    { id: 'f1', type: 'image', label: 'Foto.png', icon: 'fa-file-image', color: 'text-emerald-600' },
+                    { id: 'f2', type: 'music', label: 'Som.mp3', icon: 'fa-file-audio', color: 'text-purple-600' },
+                    { id: 'f3', type: 'image', label: 'Praia.jpg', icon: 'fa-file-image', color: 'text-emerald-600' },
+                    { id: 'f4', type: 'music', label: 'Banda.wav', icon: 'fa-file-audio', color: 'text-purple-600' }
+                ];
+
+                itemsData.forEach(item => {
+                    const elem = document.createElement('div');
+                    elem.id = item.id;
+                    elem.draggable = true;
+                    elem.className = "bg-white border border-slate-200 px-4 py-3 rounded-xl shadow-sm flex items-center gap-2 cursor-grab active:cursor-grabbing hover:shadow-md transition";
+                    elem.innerHTML = `
+                        <i class="fa-solid ${item.icon} ${item.color}"></i>
+                        <span class="text-xs font-bold text-slate-700">${item.label}</span>
+                    `;
+
+                    elem.ondragstart = (e) => {
+                        e.dataTransfer.setData('type', item.type);
+                        e.dataTransfer.setData('id', item.id);
+                    };
+                    filesArea.appendChild(elem);
+                });
+
+                container.appendChild(foldersArea);
+                container.appendChild(filesArea);
             }
 
             renderMouseL13() {
-                const area = document.getElementById('interactive-area');
-                area.className = 'w-full h-full flex flex-col md:flex-row items-center justify-around p-6 gap-6';
+                const container = document.getElementById('interactive-area');
+                container.className = "w-full h-full flex items-center justify-around";
+
+                const sourceCard = document.createElement('div');
+                sourceCard.className = "bg-blue-50 border-2 border-blue-300 p-6 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:bg-blue-100 transition";
+                sourceCard.innerHTML = `
+                    <i class="fa-solid fa-file-word text-5xl text-blue-600 mb-2"></i>
+                    <span class="text-xs font-bold text-blue-900">Arquivo Original</span>
+                    <span class="text-[10px] text-slate-500 mt-1">Botão Direito -> Copiar</span>
+                `;
 
                 let copied = false;
 
-                area.innerHTML = `
-                    <div id="source-file" class="p-6 bg-blue-50 border-2 border-blue-300 rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-blue-100 transition w-56">
-                        <i class="fa-solid fa-file-code text-blue-600 text-5xl"></i>
-                        <span class="font-bold text-xs text-blue-900">1º Clique Direito -> "Copiar"</span>
-                    </div>
+                sourceCard.oncontextmenu = (e) => {
+                    e.preventDefault();
+                    this.showContextMenu(e.clientX, e.clientY, 'copiar', () => {
+                        copied = true;
+                        sourceCard.classList.add('ring-4', 'ring-blue-400');
+                    });
+                };
 
-                    <div id="target-folder" class="p-6 bg-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-emerald-100 transition w-56 min-h-[160px]">
-                        <i class="fa-solid fa-folder-plus text-emerald-500 text-5xl"></i>
-                        <span class="font-bold text-xs text-emerald-900 text-center">2º Clique Direito Aqui -> "Colar"</span>
-                    </div>
+                const targetBox = document.createElement('div');
+                targetBox.className = "bg-slate-50 border-2 border-dashed border-slate-300 p-8 rounded-2xl flex flex-col items-center justify-center min-w-[200px] min-h-[160px]";
+                targetBox.innerHTML = `
+                    <i class="fa-solid fa-paste text-4xl text-slate-300 mb-2"></i>
+                    <span class="text-xs font-bold text-slate-400">Área de Colagem</span>
+                    <span class="text-[10px] text-slate-400 mt-1">Botão Direito -> Colar</span>
                 `;
 
-                const source = document.getElementById('source-file');
-                const target = document.getElementById('target-folder');
-
-                source.oncontextmenu = (e) => {
-                    e.preventDefault(); e.stopPropagation();
-                    this.showContextMenu(e.clientX, e.clientY, 'source');
+                targetBox.oncontextmenu = (e) => {
+                    e.preventDefault();
+                    if (!copied) {
+                        this.registerError();
+                        alert("Copie o arquivo original primeiro!");
+                        return;
+                    }
+                    this.showContextMenu(e.clientX, e.clientY, 'colar', () => {
+                        targetBox.className = "bg-emerald-50 border-2 border-emerald-400 p-8 rounded-2xl flex flex-col items-center justify-center min-w-[200px]";
+                        targetBox.innerHTML = `
+                            <i class="fa-solid fa-file-circle-check text-5xl text-emerald-600 mb-2"></i>
+                            <span class="text-xs font-bold text-emerald-900">Cópia Criada!</span>
+                        `;
+                        this.registerSuccess(3);
+                    });
                 };
 
-                target.oncontextmenu = (e) => {
-                    e.preventDefault(); e.stopPropagation();
-                    this.showContextMenu(e.clientX, e.clientY, 'target');
-                };
+                container.appendChild(sourceCard);
+                container.appendChild(targetBox);
+            }
 
-                this.onContextMenuChoice = (action) => {
-                    if (action === 'copiar' && this.activeContextMenuTarget === 'source') {
-                        copied = true;
-                        sound.playSuccess();
-                        source.classList.add('border-emerald-500');
-                    } else if (action === 'colar' && this.activeContextMenuTarget === 'target') {
-                        if (copied) {
-                            this.addHit();
-                            copied = false;
-                            if (this.levelScore < this.requiredScore) this.renderMouseL13();
-                        } else {
-                            this.addError();
-                        }
+            showContextMenu(x, y, actionType, callback) {
+                const menu = document.getElementById('custom-context-menu');
+                const rect = document.getElementById('workspace').getBoundingClientRect();
+                menu.style.left = `${x - rect.left}px`;
+                menu.style.top = `${y - rect.top}px`;
+                menu.classList.remove('hidden');
+
+                this.activeContextMenuCallback = (selectedAction) => {
+                    if (selectedAction === actionType) {
+                        callback();
                     } else {
-                        this.addError();
+                        this.registerError();
                     }
                 };
+            }
+
+            handleContextMenuSelection(action) {
+                this.hideContextMenu();
+                if (this.activeContextMenuCallback) {
+                    this.activeContextMenuCallback(action);
+                    this.activeContextMenuCallback = null;
+                }
             }
 
             renderMouseL14() {
-                const area = document.getElementById('interactive-area');
-                area.className = 'w-full h-full relative flex items-center justify-between p-8';
+                const container = document.getElementById('interactive-area');
+                container.className = "w-full h-full flex justify-around items-center relative";
 
-                const spawnPrecisionTask = () => {
-                    area.innerHTML = '';
-                    if (this.levelScore >= this.requiredScore) return;
+                const targetZone = document.createElement('div');
+                targetZone.className = "w-28 h-28 border-4 border-dashed border-amber-400 rounded-full flex items-center justify-center bg-amber-50/50";
+                targetZone.innerHTML = `<i class="fa-solid fa-crosshairs text-3xl text-amber-400"></i>`;
 
-                    const draggableCircle = document.createElement('div');
-                    draggableCircle.draggable = true;
-                    draggableCircle.className = 'w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg cursor-grab active:cursor-grabbing border-4 border-blue-200';
-                    draggableCircle.innerHTML = `<i class="fa-solid fa-arrows-up-down-left-right text-2xl"></i>`;
+                const draggablePiece = document.createElement('div');
+                draggablePiece.draggable = true;
+                draggablePiece.className = "w-24 h-24 bg-indigo-600 rounded-full shadow-lg flex items-center justify-center text-white cursor-grab active:cursor-grabbing hover:scale-105 transition";
+                draggablePiece.innerHTML = `<i class="fa-solid fa-puzzle-piece text-3xl"></i>`;
+                draggablePiece.id = "puzzle-piece-l14";
 
-                    const precisionTarget = document.createElement('div');
-                    precisionTarget.className = 'w-32 h-32 border-4 border-dashed border-emerald-500 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600 font-bold transition';
-                    precisionTarget.innerHTML = `<i class="fa-solid fa-crosshairs text-4xl"></i>`;
-
-                    draggableCircle.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/plain', 'circle'));
-                    precisionTarget.addEventListener('dragover', (e) => { e.preventDefault(); precisionTarget.classList.add('drag-over'); });
-                    precisionTarget.addEventListener('dragleave', () => precisionTarget.classList.remove('drag-over'));
-                    precisionTarget.addEventListener('drop', (e) => {
-                        e.preventDefault(); precisionTarget.classList.remove('drag-over');
-                        this.addHit(); spawnPrecisionTask();
-                    });
-
-                    area.appendChild(draggableCircle);
-                    area.appendChild(precisionTarget);
+                draggablePiece.ondragstart = (e) => {
+                    e.dataTransfer.setData('text/plain', draggablePiece.id);
                 };
-                spawnPrecisionTask();
+
+                targetZone.ondragover = (e) => e.preventDefault();
+                targetZone.ondrop = (e) => {
+                    e.preventDefault();
+                    draggablePiece.remove();
+                    targetZone.className = "w-28 h-28 bg-emerald-500 rounded-full flex items-center justify-center shadow-xl text-white";
+                    targetZone.innerHTML = `<i class="fa-solid fa-check text-4xl"></i>`;
+                    this.registerSuccess(3);
+                };
+
+                container.appendChild(draggablePiece);
+                container.appendChild(targetZone);
             }
 
             renderMouseL15() {
-                const area = document.getElementById('interactive-area');
-                const challenges = [
-                    { type: 'click', text: '1. Clique Simples no Botão', class: 'bg-blue-500 text-white p-5 rounded-2xl font-bold' },
-                    { type: 'dblclick', text: '2. Duplo Clique para Abrir', class: 'bg-amber-100 border border-amber-300 text-amber-900 p-5 rounded-2xl font-bold' },
-                    { type: 'context', text: '3. Botão Direito na Caixa', class: 'bg-indigo-100 border border-indigo-300 text-indigo-900 p-5 rounded-2xl font-bold' },
-                    { type: 'middle', text: '4. Clique na Roda do Mouse (Botão do Meio)', class: 'bg-purple-600 text-white p-5 rounded-2xl font-bold' }
+                const container = document.getElementById('interactive-area');
+                container.className = "w-full h-full flex flex-col items-center justify-center gap-6";
+
+                const card = document.createElement('div');
+                card.className = "bg-white border-2 border-indigo-200 p-8 rounded-3xl shadow-md text-center max-w-sm w-full transition";
+
+                const actions = [
+                    { type: 'click', text: 'Dê um Clique Simples', icon: 'fa-hand-pointer', color: 'text-blue-500' },
+                    { type: 'dblclick', text: 'Dê um Duplo Clique Rápido', icon: 'fa-folder-open', color: 'text-amber-500' },
+                    { type: 'context', text: 'Clique com o Botão Direito', icon: 'fa-mouse-pointer', color: 'text-purple-500' }
                 ];
 
-                const current = challenges[this.levelScore % challenges.length];
-                area.innerHTML = `
-                    <div id="final-target" class="${current.class} shadow-lg cursor-pointer flex items-center justify-center gap-3 text-lg transition transform active:scale-95">
-                        <i class="fa-solid fa-star text-yellow-300 text-3xl"></i><span>${current.text}</span>
-                    </div>
-                `;
+                let currentActionIdx = 0;
 
-                const target = document.getElementById('final-target');
-                target.onclick = () => {
-                    if (current.type === 'click') this.addHit();
-                    else if (current.type !== 'dblclick' && current.type !== 'middle') this.addError();
+                const updateCard = () => {
+                    const act = actions[currentActionIdx];
+                    card.innerHTML = `
+                        <i class="fa-solid ${act.icon} text-6xl ${act.color} mb-4"></i>
+                        <h4 class="text-lg font-bold text-slate-800">${act.text}</h4>
+                        <p class="text-xs text-slate-400 mt-1">Desafio Final ${this.levelScore + 1}/5</p>
+                    `;
                 };
-                target.ondblclick = () => { if (current.type === 'dblclick') this.addHit(); };
-                target.oncontextmenu = (e) => {
-                    e.preventDefault();
-                    if (current.type === 'context') this.addHit();
-                    else this.addError();
-                };
-                target.onmousedown = (e) => {
-                    if (e.button === 1) {
-                        e.preventDefault();
-                        if (current.type === 'middle') this.addHit();
-                        else this.addError();
+
+                updateCard();
+
+                card.onclick = () => {
+                    if (actions[currentActionIdx].type === 'click') {
+                        this.registerSuccess();
+                        currentActionIdx = (currentActionIdx + 1) % actions.length;
+                        if (this.levelScore < this.requiredScore) updateCard();
+                    } else {
+                        this.registerError();
                     }
                 };
+
+                card.ondblclick = () => {
+                    if (actions[currentActionIdx].type === 'dblclick') {
+                        this.registerSuccess();
+                        currentActionIdx = (currentActionIdx + 1) % actions.length;
+                        if (this.levelScore < this.requiredScore) updateCard();
+                    } else {
+                        this.registerError();
+                    }
+                };
+
+                card.oncontextmenu = (e) => {
+                    e.preventDefault();
+                    if (actions[currentActionIdx].type === 'context') {
+                        this.registerSuccess();
+                        currentActionIdx = (currentActionIdx + 1) % actions.length;
+                        if (this.levelScore < this.requiredScore) updateCard();
+                    } else {
+                        this.registerError();
+                    }
+                };
+
+                container.appendChild(card);
             }
 
-            // --- MODULE 2: TYPING LEVEL RENDERING & LOGIC ---
+            // ==========================================
+            // MÓDULO 2: RENDERIZAÇÕES DE DIGITAÇÃO
+            // ==========================================
 
             renderTypingLevel() {
-                const area = document.getElementById('interactive-area');
-                area.className = 'w-full h-full flex flex-col justify-between items-center p-2 md:p-4';
+                const container = document.getElementById('interactive-area');
+                container.className = "w-full h-full flex flex-col justify-between items-center p-4";
 
-                const level = this.typingLevels[this.currentLevelIndex];
-                const targetText = level.text;
+                const levelData = this.typingLevels[this.currentLevelIndex];
+                this.typingTextTarget = levelData.text;
+                this.typingCurrentCharIdx = 0;
+                this.typingStartTime = null;
 
-                area.innerHTML = `
-                    <!-- Target Text Display Box -->
-                    <div class="w-full max-w-3xl bg-slate-950 text-white p-5 rounded-2xl shadow-lg border border-slate-800 mb-3 font-mono text-xl md:text-2xl tracking-widest flex flex-wrap gap-1 leading-relaxed justify-center items-center select-none" id="typing-text-box">
-                        <!-- Individual character spans built in JS -->
-                    </div>
+                this.requiredScore = this.typingTextTarget.length;
 
-                    <!-- Virtual ABNT2 On-Screen Keyboard -->
-                    <div id="virtual-keyboard" class="w-full max-w-3xl bg-slate-200 p-3 rounded-2xl border border-slate-300 shadow-inner flex flex-col gap-1.5 text-xs font-bold text-slate-700 select-none">
-                        <!-- Row 1 -->
-                        <div class="flex gap-1 justify-center">
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="'">' "</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="1">1</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="2">2</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="3">3</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="4">4</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="5">5</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="6">6</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="7">7</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="8">8</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="9">9</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="0">0</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="-">-</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="=">=</div>
-                        </div>
-                        <!-- Row 2 -->
-                        <div class="flex gap-1 justify-center">
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="q">Q</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="w">W</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="e">E</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="r">R</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="t">T</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="y">Y</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="u">U</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="i">I</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="o">O</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="p">P</div>
-                        </div>
-                        <!-- Row 3 (Home Row) -->
-                        <div class="flex gap-1 justify-center">
-                            <div class="key bg-amber-100 border-amber-300 border px-2.5 py-2 rounded shadow-sm min-w-[32px] text-center font-bold" data-key="a">A</div>
-                            <div class="key bg-amber-100 border-amber-300 border px-2.5 py-2 rounded shadow-sm min-w-[32px] text-center font-bold" data-key="s">S</div>
-                            <div class="key bg-amber-100 border-amber-300 border px-2.5 py-2 rounded shadow-sm min-w-[32px] text-center font-bold" data-key="d">D</div>
-                            <div class="key bg-amber-200 border-amber-400 border px-2.5 py-2 rounded shadow-sm min-w-[32px] text-center font-bold" data-key="f">F*</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="g">G</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="h">H</div>
-                            <div class="key bg-amber-200 border-amber-400 border px-2.5 py-2 rounded shadow-sm min-w-[32px] text-center font-bold" data-key="j">J*</div>
-                            <div class="key bg-amber-100 border-amber-300 border px-2.5 py-2 rounded shadow-sm min-w-[32px] text-center font-bold" data-key="k">K</div>
-                            <div class="key bg-amber-100 border-amber-300 border px-2.5 py-2 rounded shadow-sm min-w-[32px] text-center font-bold" data-key="l">L</div>
-                            <div class="key bg-amber-100 border-amber-300 border px-2.5 py-2 rounded shadow-sm min-w-[32px] text-center font-bold" data-key="ç">Ç</div>
-                        </div>
-                        <!-- Row 4 -->
-                        <div class="flex gap-1 justify-center">
-                            <div class="key bg-white px-3 py-2 rounded shadow-sm border border-slate-300 min-w-[48px] text-center font-mono" data-key="shift">SHIFT</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="z">Z</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="x">X</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="c">C</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="v">V</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="b">B</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="n">N</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="m">M</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key=",">,</div>
-                            <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key=".">.</div>
-                        </div>
-                        <!-- Row 5 (Space) -->
-                        <div class="flex gap-1 justify-center">
-                            <div class="key bg-white px-12 py-2 rounded shadow-sm border border-slate-300 font-bold text-center" data-key=" ">ESPAÇO</div>
-                        </div>
-                    </div>
-                `;
+                // Display Box for Target Text
+                const textDisplayBox = document.createElement('div');
+                textDisplayBox.className = "w-full max-w-3xl bg-slate-50 border-2 border-slate-200 p-6 rounded-2xl shadow-inner text-xl md:text-2xl code-font leading-relaxed tracking-wider text-left break-words min-h-[120px]";
 
-                // Render Char Spans
-                const textBox = document.getElementById('typing-text-box');
-                textBox.innerHTML = '';
+                this.updateTypingTextRender(textDisplayBox);
 
-                for (let i = 0; i < targetText.length; i++) {
-                    const span = document.createElement('span');
-                    span.id = `char-${i}`;
-                    span.className = 'px-1 rounded font-mono transition-colors';
-                    span.textContent = targetText[i] === ' ' ? '␣' : targetText[i];
-                    if (i === 0) span.classList.add('bg-indigo-600', 'text-white', 'animate-pulse');
-                    else span.classList.add('text-slate-400');
-                    textBox.appendChild(span);
-                }
+                // Virtual Keyboard Representation
+                const keyboardBox = this.createVirtualKeyboard();
 
-                this.highlightNextTargetKey(targetText[0]);
+                container.appendChild(textDisplayBox);
+                container.appendChild(keyboardBox);
+
+                this.activeTextDisplayBox = textDisplayBox;
             }
 
-            highlightNextTargetKey(char) {
-                // Remove previous target highlight
+            updateTypingTextRender(boxElem) {
+                const target = this.typingTextTarget;
+                let html = '';
+
+                for (let i = 0; i < target.length; i++) {
+                    const char = target[i] === ' ' ? '&nbsp;' : target[i];
+                    if (i < this.typingCurrentCharIdx) {
+                        html += `<span class="text-emerald-600 bg-emerald-100 rounded px-0.5">${char}</span>`;
+                    } else if (i === this.typingCurrentCharIdx) {
+                        html += `<span class="bg-amber-400 text-white font-bold rounded px-1 animate-pulse">${char}</span>`;
+                    } else {
+                        html += `<span class="text-slate-400">${char}</span>`;
+                    }
+                }
+
+                boxElem.innerHTML = html;
+
+                if (this.typingCurrentCharIdx < target.length) {
+                    const nextChar = target[this.typingCurrentCharIdx].toLowerCase();
+                    this.highlightTargetKey(nextChar);
+                }
+            }
+
+            createVirtualKeyboard() {
+                const kb = document.createElement('div');
+                kb.className = "w-full max-w-3xl bg-slate-800 p-3 md:p-4 rounded-2xl shadow-xl flex flex-col gap-1.5 code-font text-xs md:text-sm select-none";
+
+                const rows = [
+                    ['1','2','3','4','5','6','7','8','9','0','-','='],
+                    ['q','w','e','r','t','y','u','i','o','p'],
+                    ['a','s','d','f','g','h','j','k','l','ç'],
+                    ['z','x','c','v','b','n','m',',','.']
+                ];
+
+                rows.forEach(row => {
+                    const rowDiv = document.createElement('div');
+                    rowDiv.className = "flex justify-center gap-1 md:gap-1.5 w-full";
+                    row.forEach(key => {
+                        const keyBtn = document.createElement('div');
+                        keyBtn.id = `vkey-${key}`;
+                        keyBtn.className = "bg-slate-700 text-slate-200 font-bold px-3 py-2.5 rounded-lg flex-1 text-center shadow transition-all uppercase";
+                        keyBtn.textContent = key;
+                        rowDiv.appendChild(keyBtn);
+                    });
+                    kb.appendChild(rowDiv);
+                });
+
+                // Spacebar row
+                const spaceRow = document.createElement('div');
+                spaceRow.className = "flex justify-center gap-1.5 w-full mt-1";
+
+                const spaceBtn = document.createElement('div');
+                spaceBtn.id = "vkey- ";
+                spaceBtn.className = "bg-slate-700 text-slate-200 font-bold py-2.5 rounded-lg w-1/2 text-center shadow transition-all";
+                spaceBtn.textContent = "ESPAÇO";
+                spaceRow.appendChild(spaceBtn);
+
+                kb.appendChild(spaceRow);
+                return kb;
+            }
+
+            highlightTargetKey(char) {
                 document.querySelectorAll('.key-target').forEach(el => el.classList.remove('key-target'));
-                if (!char) return;
-
-                const lowerChar = char.toLowerCase();
-                const keyEl = document.querySelector(`.key[data-key="${lowerChar}"]`);
-                if (keyEl) {
-                    keyEl.classList.add('key-target');
+                const targetKeyElem = document.getElementById(`vkey-${char}`);
+                if (targetKeyElem) {
+                    targetKeyElem.classList.add('key-target');
                 }
             }
 
-            highlightVirtualKey(keyChar, active) {
-                const lowerKey = keyChar === ' ' ? ' ' : keyChar.toLowerCase();
-                const keyEl = document.querySelector(`.key[data-key="${lowerKey}"]`);
-                if (keyEl) {
-                    if (active) keyEl.classList.add('key-active');
-                    else keyEl.classList.remove('key-active');
+            highlightVirtualKey(key, isActive) {
+                const kElem = document.getElementById(`vkey-${key}`);
+                if (kElem) {
+                    if (isActive) kElem.classList.add('key-active');
+                    else kElem.classList.remove('key-active');
                 }
             }
 
             handleTypingKeyPress(e) {
-                // Ignore system modifier keys
-                if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab'].includes(e.key)) {
-                    if (e.key === 'Shift') this.highlightVirtualKey('shift', true);
-                    return;
+                if (this.currentModule !== 2) return;
+                if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt') return;
+
+                if (!this.typingStartTime) {
+                    this.typingStartTime = Date.now();
                 }
 
-                const level = this.typingLevels[this.currentLevelIndex];
-                const targetText = level.text;
-                const currentIndex = this.levelScore;
+                const pressedKey = e.key;
+                const expectedChar = this.typingTextTarget[this.typingCurrentCharIdx];
 
-                if (currentIndex >= targetText.length) return;
+                this.highlightVirtualKey(pressedKey.toLowerCase(), true);
 
-                const expectedChar = targetText[currentIndex];
-                const typedChar = e.key;
-
-                this.highlightVirtualKey(typedChar, true);
-
-                if (typedChar === expectedChar) {
+                if (pressedKey === expectedChar) {
                     sound.playKeyTap();
+                    this.typingCurrentCharIdx++;
                     this.typingTotalTypedChars++;
+                    this.registerSuccess();
 
-                    // Mark current span as correct
-                    const currentSpan = document.getElementById(`char-${currentIndex}`);
-                    if (currentSpan) {
-                        currentSpan.className = 'px-1 rounded font-mono text-emerald-400 font-bold bg-emerald-950/50';
-                    }
+                    this.updateTypingTextRender(this.activeTextDisplayBox);
 
-                    this.addHit();
-
-                    // Advance cursor to next char
-                    const nextIndex = currentIndex + 1;
-                    if (nextIndex < targetText.length) {
-                        const nextSpan = document.getElementById(`char-${nextIndex}`);
-                        if (nextSpan) {
-                            nextSpan.className = 'px-1 rounded font-mono bg-indigo-600 text-white animate-pulse';
-                        }
-                        this.highlightNextTargetKey(targetText[nextIndex]);
+                    if (this.typingCurrentCharIdx >= this.typingTextTarget.length) {
+                        this.completeLevel();
                     }
                 } else {
-                    this.addError();
-                    const currentSpan = document.getElementById(`char-${currentIndex}`);
-                    if (currentSpan) {
-                        currentSpan.classList.add('bg-rose-600', 'text-white');
-                        setTimeout(() => currentSpan.classList.remove('bg-rose-600'), 300);
-                    }
+                    this.registerError();
                 }
+            }
+
+            calculateWPM() {
+                if (!this.typingStartTime || this.typingTotalTypedChars === 0) return;
+                const elapsedMinutes = (Date.now() - this.typingStartTime) / 60000;
+                if (elapsedMinutes <= 0) return;
+
+                const wordsTyped = (this.typingTotalTypedChars / 5);
+                const wpm = Math.round(wordsTyped / elapsedMinutes);
+                document.getElementById('wpm-display').textContent = `${wpm} WPM`;
             }
         }
 
+        // Initialize App on DOM Load
         let app;
         window.addEventListener('DOMContentLoaded', () => {
             app = new ComputerSkillsApp();

@@ -36,9 +36,9 @@
         }
 
         @keyframes pulse-ring {
-            0% { transform: scale(0.95); opacity: 0.8; }
+            0% { transform: scale(0.95); opacity: 0.85; }
             50% { transform: scale(1.05); opacity: 1; }
-            100% { transform: scale(0.95); opacity: 0.8; }
+            100% { transform: scale(0.95); opacity: 0.85; }
         }
         .animate-pulse-ring {
             animation: pulse-ring 1.5s infinite ease-in-out;
@@ -72,15 +72,8 @@
             animation: pulse-ring 1s infinite ease-in-out;
         }
 
-        .tab-close-btn:hover {
-            background-color: #ef4444;
-            color: white;
-        }
-
-        /* Canvas paint styles */
-        #paint-canvas {
+        canvas {
             touch-action: none;
-            cursor: crosshair;
         }
     </style>
 </head>
@@ -90,10 +83,10 @@
     <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-30">
         <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
             
-            <!-- Logo & Module Tabs -->
-            <div class="flex items-center gap-4">
+            <!-- Logo & App Title -->
+            <div class="flex items-center gap-3">
                 <div class="bg-white/20 p-2.5 rounded-2xl flex items-center justify-center">
-                    <i id="app-logo-icon" class="fa-solid fa-laptop text-2xl text-yellow-300"></i>
+                    <i id="app-logo-icon" class="fa-solid fa-computer-mouse text-2xl text-yellow-300"></i>
                 </div>
                 <div>
                     <h1 class="text-xl md:text-2xl font-bold tracking-wide">Mestre da Informática</h1>
@@ -103,12 +96,12 @@
 
             <!-- Module Switchers -->
             <div class="flex items-center bg-indigo-800/60 p-1.5 rounded-2xl border border-indigo-500/30">
-                <button id="mod1-tab-btn" onclick="app.switchToModule(1)" class="px-4 py-2 rounded-xl font-bold text-xs md:text-sm transition flex items-center gap-2 bg-white text-indigo-900 shadow-sm">
-                    <i class="fa-solid fa-computer-mouse text-amber-500"></i> Módulo 1: Mouse
+                <button id="mod1-tab-btn" onclick="app.switchToModule(1)" class="px-4 py-2 rounded-xl font-bold text-xs md:text-sm transition flex items-center gap-2 bg-white text-indigo-900 shadow-sm cursor-pointer">
+                    <i class="fa-solid fa-computer-mouse text-amber-500"></i> Módulo 1: Mouse (19)
                 </button>
-                <button id="mod2-tab-btn" onclick="app.switchToModule(2)" class="px-4 py-2 rounded-xl font-bold text-xs md:text-sm transition flex items-center gap-2 text-indigo-200 hover:text-white relative opacity-70">
+                <button id="mod2-tab-btn" onclick="app.switchToModule(2)" class="px-4 py-2 rounded-xl font-bold text-xs md:text-sm transition flex items-center gap-2 text-indigo-200 hover:text-white relative opacity-70 cursor-pointer">
                     <i id="mod2-lock-icon" class="fa-solid fa-lock text-yellow-400"></i>
-                    <span>Módulo 2: Digitação</span>
+                    <span>Módulo 2: Digitação (10)</span>
                 </button>
             </div>
 
@@ -140,17 +133,20 @@
                 </div>
             </div>
 
-            <!-- Controls (Restart & Levels) -->
+            <!-- Controls (Mute, Restart, Levels, Teacher Unlock) -->
             <div class="flex items-center gap-2">
-                <button onclick="app.restartLevel()" class="bg-indigo-500 hover:bg-indigo-400 text-white px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow-sm">
+                <button id="mute-btn" onclick="app.toggleMute()" title="Ativar/Desativar Som" class="bg-indigo-700 hover:bg-indigo-800 text-white px-2.5 py-2 rounded-lg text-xs transition border border-indigo-500/40 cursor-pointer">
+                    <i id="mute-icon" class="fa-solid fa-volume-high"></i>
+                </button>
+                <button onclick="app.restartLevel()" class="bg-indigo-500 hover:bg-indigo-400 text-white px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow-sm cursor-pointer">
                     <i class="fa-solid fa-rotate-right"></i> Reiniciar
                 </button>
                 <div class="relative">
-                    <select id="level-select" onchange="app.changeLevel(this.value)" class="bg-white text-indigo-900 font-semibold px-3 py-2 pr-8 rounded-lg text-xs shadow-sm border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-yellow-400 cursor-pointer">
+                    <select id="level-select" onchange="app.changeLevel(this.value)" class="bg-white text-indigo-900 font-semibold px-3 py-2 pr-7 rounded-lg text-xs shadow-sm border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-yellow-400 cursor-pointer max-w-[210px]">
                         <!-- Populated dynamically -->
                     </select>
                 </div>
-                <button onclick="app.teacherUnlockToggle()" title="Atalho do Professor: Desbloquear Módulo 2" class="bg-indigo-800 hover:bg-indigo-900 text-indigo-200 hover:text-white px-2.5 py-2 rounded-lg text-xs transition border border-indigo-500/40">
+                <button onclick="app.teacherUnlockToggle()" title="Atalho do Professor: Desbloquear Módulo 2" class="bg-indigo-800 hover:bg-indigo-900 text-indigo-200 hover:text-white px-2.5 py-2 rounded-lg text-xs transition border border-indigo-500/40 cursor-pointer">
                     <i class="fa-solid fa-key"></i>
                 </button>
             </div>
@@ -162,6 +158,12 @@
         </div>
     </header>
 
+    <!-- Non-intrusive Toast Notification -->
+    <div id="toast-banner" class="hidden fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl border border-slate-700 flex items-center gap-3 text-sm font-semibold transition-all">
+        <i id="toast-icon" class="fa-solid fa-circle-info text-yellow-400 text-lg"></i>
+        <span id="toast-message">Aviso</span>
+    </div>
+
     <!-- Main Active Workspace -->
     <main class="max-w-7xl mx-auto w-full flex-1 p-4 md:p-6 flex flex-col gap-4">
 
@@ -172,7 +174,7 @@
                     <i id="instruction-icon" class="fa-solid fa-hand-pointer"></i>
                 </div>
                 <div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
                         <span id="level-badge" class="bg-indigo-100 text-indigo-700 text-xs font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">Módulo 1 - Nível 1</span>
                         <h2 id="level-title" class="text-lg md:text-xl font-bold text-slate-800">Carregando exercício...</h2>
                     </div>
@@ -186,29 +188,32 @@
                     <span class="text-xs text-slate-400 font-semibold uppercase block">Meta do Nível</span>
                     <span id="target-count-display" class="text-lg font-bold text-indigo-600">0 / 0</span>
                 </div>
-                <button id="next-level-btn" onclick="app.nextLevel()" class="hidden bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition shadow-md flex items-center gap-2 animate-bounce">
+                <button id="next-level-btn" onclick="app.nextLevel()" class="hidden bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition shadow-md flex items-center gap-2 animate-bounce cursor-pointer">
                     Próxima Fase <i class="fa-solid fa-arrow-right"></i>
                 </button>
             </div>
         </div>
 
         <!-- Interactive Playground / Typing Box -->
-        <div id="workspace" class="bg-white rounded-2xl shadow-sm border border-slate-200 flex-1 min-h-[460px] relative overflow-hidden flex flex-col items-center justify-center p-4">
+        <div id="workspace" class="bg-white rounded-2xl shadow-sm border border-slate-200 flex-1 min-h-[480px] relative overflow-hidden flex flex-col items-center justify-center p-4">
             
-            <div id="interactive-area" class="w-full h-full relative flex flex-col items-center justify-center">
+            <div id="interactive-area" class="w-full h-full flex-1 relative flex flex-col items-center justify-center">
                 <!-- Dynamically rendered UI for active level -->
             </div>
 
             <!-- Custom Right Click Context Menu Simulator -->
-            <div id="custom-context-menu" class="hidden absolute bg-white rounded-xl shadow-xl border border-slate-200 py-2 w-52 z-50 transition-all text-sm font-semibold text-slate-700">
+            <div id="custom-context-menu" class="hidden absolute bg-white rounded-xl shadow-xl border border-slate-200 py-2 w-56 z-50 transition-all text-sm font-semibold text-slate-700">
                 <div class="px-3 py-1.5 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 mb-1">Menu de Opções</div>
-                <button onclick="app.handleContextMenuSelection('copiar')" class="w-full text-left px-4 py-2 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2.5">
+                <button onclick="app.handleContextMenuSelection('copiar')" class="w-full text-left px-4 py-2 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2.5 cursor-pointer">
                     <i class="fa-solid fa-copy text-blue-500"></i> Copiar
                 </button>
-                <button onclick="app.handleContextMenuSelection('colar')" class="w-full text-left px-4 py-2 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2.5">
+                <button onclick="app.handleContextMenuSelection('colar')" class="w-full text-left px-4 py-2 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2.5 cursor-pointer">
                     <i class="fa-solid fa-paste text-emerald-500"></i> Colar
                 </button>
-                <button onclick="app.handleContextMenuSelection('excluir')" class="w-full text-left px-4 py-2 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2.5 border-t border-slate-100 text-rose-600 hover:text-rose-700">
+                <button onclick="app.handleContextMenuSelection('renomear')" class="w-full text-left px-4 py-2 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2.5 cursor-pointer">
+                    <i class="fa-solid fa-pen text-amber-500"></i> Renomear
+                </button>
+                <button onclick="app.handleContextMenuSelection('excluir')" class="w-full text-left px-4 py-2 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2.5 border-t border-slate-100 text-rose-600 hover:text-rose-700 cursor-pointer">
                     <i class="fa-solid fa-trash text-rose-500"></i> Excluir para Lixeira
                 </button>
             </div>
@@ -236,10 +241,10 @@
             </div>
 
             <div class="flex gap-3">
-                <button onclick="app.restartLevel(); app.hideModal();" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl text-sm transition">
+                <button onclick="app.restartLevel(); app.hideModal();" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl text-sm transition cursor-pointer">
                     Repetir Fase
                 </button>
-                <button id="modal-next-btn" onclick="app.nextLevel(); app.hideModal();" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl text-sm shadow-lg shadow-indigo-200 transition">
+                <button id="modal-next-btn" onclick="app.nextLevel(); app.hideModal();" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl text-sm shadow-lg shadow-indigo-200 transition cursor-pointer">
                     Avançar <i class="fa-solid fa-arrow-right ml-1"></i>
                 </button>
             </div>
@@ -258,15 +263,15 @@
             </div>
 
             <h2 class="text-2xl md:text-3xl font-extrabold text-indigo-900 uppercase tracking-wide">Certificado de Conclusão</h2>
-            <p class="text-slate-500 text-sm mt-1">Curso de Informática Básica • Módulos de Mouse e Digitação</p>
+            <p class="text-slate-500 text-sm mt-1">Curso de Informática Básica • Módulos de Mouse (19 Fases) e Digitação (10 Fases)</p>
 
             <div class="my-6 p-6 bg-indigo-50/60 rounded-2xl border border-indigo-100 text-slate-700">
                 <p class="text-base md:text-lg font-medium">Parabéns! Você demonstrou excelente domínio das ferramentas essenciais da informática!</p>
                 <div class="flex flex-wrap justify-center gap-2 my-4 text-xs font-bold text-indigo-700">
-                    <span class="bg-white px-3 py-1.5 rounded-full border border-indigo-200">✓ Mouse: Cliques e Arrastes</span>
-                    <span class="bg-white px-3 py-1.5 rounded-full border border-indigo-200">✓ Mouse: Roda de Rolagem & Menus</span>
+                    <span class="bg-white px-3 py-1.5 rounded-full border border-indigo-200">✓ Mouse: Cliques, Seleção e Labirinto</span>
+                    <span class="bg-white px-3 py-1.5 rounded-full border border-indigo-200">✓ Mouse: Roda de Rolagem, Menus & Assinatura</span>
                     <span class="bg-white px-3 py-1.5 rounded-full border border-indigo-200">✓ Digitação: Posição de Mãos</span>
-                    <span class="bg-white px-3 py-1.5 rounded-full border border-indigo-200">✓ Digitação: Acentuação e Maiúsculas</span>
+                    <span class="bg-white px-3 py-1.5 rounded-full border border-indigo-200">✓ Digitação: Acentuação e Velocidade</span>
                 </div>
             </div>
 
@@ -286,7 +291,7 @@
             </div>
 
             <div class="flex flex-wrap gap-3">
-                <button onclick="app.switchToModule(1); app.loadLevel(0); app.hideCertificate();" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-xl text-sm shadow-lg shadow-indigo-200 transition">
+                <button onclick="app.switchToModule(1); app.loadLevel(0); app.hideCertificate();" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-xl text-sm shadow-lg shadow-indigo-200 transition cursor-pointer">
                     <i class="fa-solid fa-rotate-left mr-2"></i> Reiniciar Curso do Zero
                 </button>
             </div>
@@ -294,19 +299,32 @@
     </div>
 
     <script>
-        // Web Audio API Sound Synthesizer
+        // Web Audio API Sound Synthesizer with Mute Support
         class SoundEngine {
             constructor() {
                 this.ctx = null;
+                this.muted = false;
             }
 
             init() {
                 if (!this.ctx) {
-                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) {
+                        this.ctx = new AudioCtx();
+                    }
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
                 }
             }
 
+            toggleMute() {
+                this.muted = !this.muted;
+                return this.muted;
+            }
+
             playSuccess() {
+                if (this.muted) return;
                 this.init();
                 if (!this.ctx) return;
                 const now = this.ctx.currentTime;
@@ -317,7 +335,7 @@
                 osc.frequency.setValueAtTime(523.25, now); // C5
                 osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.12); // G5
 
-                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.setValueAtTime(0.18, now);
                 gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
 
                 osc.connect(gain);
@@ -328,6 +346,7 @@
             }
 
             playKeyTap() {
+                if (this.muted) return;
                 this.init();
                 if (!this.ctx) return;
                 const now = this.ctx.currentTime;
@@ -335,10 +354,10 @@
                 const gain = this.ctx.createGain();
 
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(400, now);
-                osc.frequency.exponentialRampToValueAtTime(200, now + 0.05);
+                osc.frequency.setValueAtTime(420, now);
+                osc.frequency.exponentialRampToValueAtTime(210, now + 0.05);
 
-                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.setValueAtTime(0.14, now);
                 gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
 
                 osc.connect(gain);
@@ -349,6 +368,7 @@
             }
 
             playError() {
+                if (this.muted) return;
                 this.init();
                 if (!this.ctx) return;
                 const now = this.ctx.currentTime;
@@ -357,19 +377,20 @@
 
                 osc.type = 'sawtooth';
                 osc.frequency.setValueAtTime(180, now);
-                osc.frequency.linearRampToValueAtTime(110, now + 0.2);
+                osc.frequency.linearRampToValueAtTime(110, now + 0.22);
 
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                gain.gain.setValueAtTime(0.18, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.22);
 
                 osc.connect(gain);
                 gain.connect(this.ctx.destination);
 
                 osc.start(now);
-                osc.stop(now + 0.2);
+                osc.stop(now + 0.22);
             }
 
             playFanfare() {
+                if (this.muted) return;
                 this.init();
                 if (!this.ctx) return;
                 const notes = [523.25, 659.25, 783.99, 1046.50];
@@ -381,7 +402,7 @@
                     osc.type = 'triangle';
                     osc.frequency.setValueAtTime(freq, now);
 
-                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.setValueAtTime(0.18, now);
                     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
 
                     osc.connect(gain);
@@ -408,28 +429,34 @@
                 this.timerInterval = null;
                 this.movingInterval = null;
                 this.activeContextMenuTarget = null;
+                this.onContextMenuChoice = null;
+                this.levelCleanup = null;
+                this.toastTimeout = null;
 
                 // Typing stats
                 this.typingTotalTypedChars = 0;
-                this.typingStartTime = null;
 
-                // Module 1: Mouse Mastery (15 Levels)
+                // Module 1: Mouse Mastery (19 Levels)
                 this.mouseLevels = [
-                    { id: 1, title: 'Clique Simples', instruction: 'Clique com o BOTÃO ESQUERDO no botão de alvo.', icon: 'fa-hand-pointer', required: 3, render: () => this.renderMouseL1() },
-                    { id: 2, title: 'Precisão de Clique', instruction: 'Clique nos alvos menores conforme surgirem na tela.', icon: 'fa-bullseye', required: 5, render: () => this.renderMouseL2() },
-                    { id: 3, title: 'Clique Duplo (Abre Pastas)', instruction: 'Dê DOIS CLIQUES RÁPIDOS com o botão esquerdo nas pastas.', icon: 'fa-folder-open', required: 3, render: () => this.renderMouseL3() },
-                    { id: 4, title: 'Botão Direito do Mouse', instruction: 'Clique com o BOTÃO DIREITO do mouse nos elementos.', icon: 'fa-mouse-pointer', required: 3, render: () => this.renderMouseL4() },
-                    { id: 5, title: 'Arrastar e Soltar na Lixeira', instruction: 'Clique, segure e ARRASTE o arquivo para a lixeira.', icon: 'fa-arrows-up-down-left-right', required: 3, render: () => this.renderMouseL5() },
-                    { id: 6, title: 'Roda de Rolagem (Scroll)', instruction: 'Role a página com a RODA DO MOUSE até achar o botão.', icon: 'fa-arrows-up-down', required: 3, render: () => this.renderMouseL6() },
-                    { id: 7, title: 'Clique do Meio (Scroll Click)', instruction: 'Aperte a RODA DO MOUSE (Botão do Meio) em cima de cada aba.', icon: 'fa-window-restore', required: 4, render: () => this.renderMouseL7() },
-                    { id: 8, title: 'Alvos em Movimento', instruction: 'Mova o mouse e clique no alvo enquanto ele flutua.', icon: 'fa-person-running', required: 5, render: () => this.renderMouseL8() },
-                    { id: 9, title: 'Seleção Retangular por Arraste', instruction: 'Clique e arraste uma caixa de seleção azul cobrindo as bolinhas.', icon: 'fa-vector-square', required: 3, render: () => this.renderMouseL9() },
-                    { id: 10, title: 'Pintura Continuada por Arraste', instruction: 'Segure o clique e passe o pincel para cobrir a área de pintura.', icon: 'fa-paintbrush', required: 1, render: () => this.renderMouseL10() },
-                    { id: 11, title: 'Rolagem de Zoom em Caixa', instruction: 'Role a roda dentro do quadro para ajustar o zoom em 100%.', icon: 'fa-magnifying-glass-plus', required: 3, render: () => this.renderMouseL11() },
-                    { id: 12, title: 'Organização de Arquivos em Pastas', instruction: 'Arraste cada arquivo para a sua pasta correspondente.', icon: 'fa-boxes-packing', required: 4, render: () => this.renderMouseL12() },
-                    { id: 13, title: 'Menu de Contexto: Copiar e Colar', instruction: 'Clique com o botão direito -> "Copiar" e depois no quadro -> "Colar".', icon: 'fa-copy', required: 3, render: () => this.renderMouseL13() },
-                    { id: 14, title: 'Encaixe de Precisão em Alvo', instruction: 'Arraste a peça e solte exatamente no centro do alvo.', icon: 'fa-crosshairs', required: 3, render: () => this.renderMouseL14() },
-                    { id: 15, title: 'Desafio Final do Mouse', instruction: 'Siga a instrução sorteada para cada caixa e complete o módulo!', icon: 'fa-award', required: 5, render: () => this.renderMouseL15() }
+                    { id: 1, title: 'Clique Simples', instruction: 'Clique com o BOTÃO ESQUERDO no botão de alvo central.', icon: 'fa-hand-pointer', required: 3, render: () => this.renderMouseL1() },
+                    { id: 2, title: 'Clique Rápido / Múltiplo', instruction: 'Clique nos alvos conforme surgirem rapidamente na tela.', icon: 'fa-bullseye', required: 5, render: () => this.renderMouseL2() },
+                    { id: 3, title: 'Duplo Clique (Abrir Pastas)', instruction: 'Dê DOIS CLIQUES RÁPIDOS com o botão esquerdo nas pastas.', icon: 'fa-folder-open', required: 3, render: () => this.renderMouseL3() },
+                    { id: 4, title: 'Botão Direito do Mouse', instruction: 'Clique com o BOTÃO DIREITO do mouse no elemento para abrir o menu.', icon: 'fa-mouse-pointer', required: 3, render: () => this.renderMouseL4() },
+                    { id: 5, title: 'Arrastar e Soltar Básico', instruction: 'Clique, segure e ARRASTE o arquivo até a lixeira.', icon: 'fa-arrows-up-down-left-right', required: 3, render: () => this.renderMouseL5() },
+                    { id: 6, title: 'Organizar Pastas por Categoria', instruction: 'Arraste cada arquivo (Imagem, Texto ou Música) para sua pasta correta.', icon: 'fa-boxes-packing', required: 3, render: () => this.renderMouseL6() },
+                    { id: 7, title: 'Clique com Botão do Meio (Scroll)', instruction: 'Aperte a RODA DO MOUSE (Botão do Meio) em cima de cada aba para fechá-la.', icon: 'fa-window-restore', required: 4, render: () => this.renderMouseL7() },
+                    { id: 8, title: 'Alvos em Movimento', instruction: 'Acompanhe com o olhar e clique no alvo que rebate nas bordas da tela.', icon: 'fa-person-running', required: 5, render: () => this.renderMouseL8() },
+                    { id: 9, title: 'Seleção Retangular por Arraste', instruction: 'Clique no fundo vazio e arraste uma caixa azul cobrindo todos os 8 arquivos.', icon: 'fa-vector-square', required: 8, render: () => this.renderMouseL9() },
+                    { id: 10, title: 'Rolagem Vertical (Scroll)', instruction: 'Role a página para baixo com a RODA DO MOUSE até encontrar o botão.', icon: 'fa-arrows-up-down', required: 3, render: () => this.renderMouseL10() },
+                    { id: 11, title: 'Zoom com Scroll do Mouse', instruction: 'Gire a roda do mouse sobre o quadro para ajustar o zoom exatamente em 100%.', icon: 'fa-magnifying-glass-plus', required: 3, render: () => this.renderMouseL11() },
+                    { id: 12, title: 'Precisão em Alvos Pequenos', instruction: 'Clique com máxima precisão no centro dos alvos pequenos sem errar o fundo.', icon: 'fa-crosshairs', required: 5, render: () => this.renderMouseL12() },
+                    { id: 13, title: 'Menu de Contexto: Copiar e Colar', instruction: 'Clique direito no arquivo -> "Copiar" e depois clique direito na pasta -> "Colar".', icon: 'fa-copy', required: 3, render: () => this.renderMouseL13() },
+                    { id: 14, title: 'Encaixe de Precisão', instruction: 'Arraste a esfera azul e solte exatamente dentro do alvo de encaixe.', icon: 'fa-bullseye', required: 3, render: () => this.renderMouseL14() },
+                    { id: 15, title: 'Alvo Errático (Imprevisível)', instruction: 'Clique no alvo que muda de direção, ângulo e velocidade aleatoriamente na tela.', icon: 'fa-bolt', required: 5, render: () => this.renderMouseL15() },
+                    { id: 16, title: 'Caminho Longo por Arraste', instruction: 'Clique e segure no disco azul (INÍCIO) e arraste por toda a pista até a CHEGADA sem sair ou soltar!', icon: 'fa-route', required: 1, render: () => this.renderMouseL16() },
+                    { id: 17, title: 'Labirinto de Precisão por Arraste', instruction: 'Arraste a esfera até a saída verde sem encostar nas paredes e sem soltar o botão do mouse!', icon: 'fa-dungeon', required: 1, render: () => this.renderMouseL17() },
+                    { id: 18, title: 'Desenhe seu Nome (Assinatura Livre)', instruction: 'Segure o clique esquerdo na folha digital e desenhe seu nome completo. Depois clique em Concluir!', icon: 'fa-signature', required: 1, render: () => this.renderMouseL18() },
+                    { id: 19, title: 'Desafio Final Misto do Mouse', instruction: 'Siga a ação solicitada em cada desafio para concluir o Módulo 1!', icon: 'fa-award', required: 5, render: () => this.renderMouseL19() }
                 ];
 
                 // Module 2: Typing Mastery / Digitação (10 Levels)
@@ -443,7 +470,7 @@
                     { id: 7, title: 'Uso de Maiúsculas com SHIFT', instruction: 'Segure SHIFT para digitar letras maiúsculas no início das palavras.', icon: 'fa-arrow-up-z-a', text: 'Brasil Informatica Teclado Mouse Curitiba', render: () => this.renderTypingLevel() },
                     { id: 8, title: 'Palavras Frequentes e Acentos', instruction: 'Digite palavras do vocabulário técnico com acentuação.', icon: 'fa-font', text: 'computador arquivo digitação memória tela lição', render: () => this.renderTypingLevel() },
                     { id: 9, title: 'Frases do Dia a Dia', instruction: 'Digite frases completas com pontuação.', icon: 'fa-align-left', text: 'O computador é uma ferramenta útil para o estudo.', render: () => this.renderTypingLevel() },
-                    { id: 10, title: 'Avaliador de Velocidade e Precisão', instruction: 'Digite o texto continuo o mais rápido e preciso possível!', icon: 'fa-trophy', text: 'A informática básica abre portas para o futuro. Praticar o uso do mouse e a digitação correta torna o trabalho rápido e agradável.', render: () => this.renderTypingLevel() }
+                    { id: 10, title: 'Avaliador de Velocidade e Precisão', instruction: 'Digite o texto contínuo o mais rápido e preciso possível!', icon: 'fa-trophy', text: 'A informática básica abre portas para o futuro. Praticar o uso do mouse e a digitação correta torna o trabalho rápido e agradável.', render: () => this.renderTypingLevel() }
                 ];
             }
 
@@ -453,6 +480,37 @@
                 this.switchToModule(1);
             }
 
+            showToast(msg, type = 'info') {
+                const banner = document.getElementById('toast-banner');
+                const textEl = document.getElementById('toast-message');
+                const iconEl = document.getElementById('toast-icon');
+                if (!banner || !textEl || !iconEl) return;
+
+                textEl.textContent = msg;
+                if (type === 'error') {
+                    iconEl.className = 'fa-solid fa-triangle-exclamation text-rose-400 text-lg';
+                } else if (type === 'success') {
+                    iconEl.className = 'fa-solid fa-circle-check text-emerald-400 text-lg';
+                } else {
+                    iconEl.className = 'fa-solid fa-circle-info text-yellow-400 text-lg';
+                }
+
+                banner.classList.remove('hidden');
+                if (this.toastTimeout) clearTimeout(this.toastTimeout);
+                this.toastTimeout = setTimeout(() => {
+                    banner.classList.add('hidden');
+                }, 3200);
+            }
+
+            toggleMute() {
+                const isMuted = sound.toggleMute();
+                const icon = document.getElementById('mute-icon');
+                if (icon) {
+                    icon.className = isMuted ? 'fa-solid fa-volume-xmark text-rose-300' : 'fa-solid fa-volume-high';
+                }
+                this.showToast(isMuted ? 'Som desativado' : 'Som ativado', 'info');
+            }
+
             getActiveLevels() {
                 return this.currentModule === 1 ? this.mouseLevels : this.typingLevels;
             }
@@ -460,27 +518,26 @@
             switchToModule(modNum) {
                 if (modNum === 2 && !this.module2Unlocked) {
                     sound.playError();
-                    alert("🔒 O Módulo 2 (Digitação) só é liberado após concluir todas as 15 fases do Módulo 1 do Mouse!");
+                    this.showToast('O Módulo 2 (Digitação) só é liberado após concluir as 19 fases do Módulo 1!', 'error');
                     return;
                 }
 
                 this.currentModule = modNum;
                 this.currentLevelIndex = 0;
 
-                // Update Tabs UI
                 const btn1 = document.getElementById('mod1-tab-btn');
                 const btn2 = document.getElementById('mod2-tab-btn');
                 const logoIcon = document.getElementById('app-logo-icon');
                 const wpmStatBox = document.getElementById('wpm-stat-box');
 
                 if (modNum === 1) {
-                    btn1.className = "px-4 py-2 rounded-xl font-bold text-xs md:text-sm transition flex items-center gap-2 bg-white text-indigo-900 shadow-sm";
-                    btn2.className = `px-4 py-2 rounded-xl font-bold text-xs md:text-sm transition flex items-center gap-2 text-indigo-200 hover:text-white ${!this.module2Unlocked ? 'opacity-70' : ''}`;
+                    btn1.className = "px-4 py-2 rounded-xl font-bold text-xs md:text-sm transition flex items-center gap-2 bg-white text-indigo-900 shadow-sm cursor-pointer";
+                    btn2.className = `px-4 py-2 rounded-xl font-bold text-xs md:text-sm transition flex items-center gap-2 text-indigo-200 hover:text-white cursor-pointer ${!this.module2Unlocked ? 'opacity-70' : ''}`;
                     logoIcon.className = "fa-solid fa-computer-mouse text-2xl text-yellow-300";
                     wpmStatBox.classList.add('hidden');
                 } else {
-                    btn2.className = "px-4 py-2 rounded-xl font-bold text-xs md:text-sm transition flex items-center gap-2 bg-white text-indigo-900 shadow-sm";
-                    btn1.className = "px-4 py-2 rounded-xl font-bold text-xs md:text-sm transition flex items-center gap-2 text-indigo-200 hover:text-white";
+                    btn2.className = "px-4 py-2 rounded-xl font-bold text-xs md:text-sm transition flex items-center gap-2 bg-white text-indigo-900 shadow-sm cursor-pointer";
+                    btn1.className = "px-4 py-2 rounded-xl font-bold text-xs md:text-sm transition flex items-center gap-2 text-indigo-200 hover:text-white cursor-pointer";
                     logoIcon.className = "fa-solid fa-keyboard text-2xl text-yellow-300";
                     wpmStatBox.classList.remove('hidden');
                 }
@@ -496,13 +553,13 @@
                     lockIcon.className = "fa-solid fa-unlock text-emerald-400";
                 }
                 const btn2 = document.getElementById('mod2-tab-btn');
-                btn2.classList.remove('opacity-70');
+                if (btn2) btn2.classList.remove('opacity-70');
             }
 
             teacherUnlockToggle() {
                 this.unlockModule2();
                 sound.playFanfare();
-                alert("🔑 Professor: Módulo 2 de Digitação Desbloqueado com sucesso!");
+                this.showToast('Professor: Módulo 2 de Digitação desbloqueado!', 'success');
                 this.switchToModule(2);
             }
 
@@ -582,24 +639,35 @@
             }
 
             loadLevel(index) {
-                if (this.movingInterval) clearInterval(this.movingInterval);
-                this.currentLevelIndex = index;
-                this.levelScore = 0;
-                this.activeContextMenuTarget = null;
-                this.hideContextMenu();
-
-                const levels = this.getActiveLevels();
-                const level = levels[index];
-                
-                if (this.currentModule === 2) {
-                    this.requiredScore = level.text.length;
-                    this.typingTotalTypedChars = 0;
-                } else {
-                    this.requiredScore = level.required;
+                if (this.movingInterval) {
+                    clearInterval(this.movingInterval);
+                    this.movingInterval = null;
+                }
+                if (typeof this.levelCleanup === 'function') {
+                    this.levelCleanup();
+                    this.levelCleanup = null;
                 }
 
+                const levels = this.getActiveLevels();
+                const safeIndex = Math.max(0, Math.min(index, levels.length - 1));
+                const level = levels[safeIndex];
+
+                this.currentLevelIndex = safeIndex;
+                this.levelScore = 0;
+                this.requiredScore = this.currentModule === 1 ? level.required : level.text.length;
+                this.activeContextMenuTarget = null;
+                this.onContextMenuChoice = null;
+                this.hideContextMenu();
+
+                const area = document.getElementById('interactive-area');
+                area.className = 'w-full h-full flex-1 relative flex flex-col items-center justify-center';
+                area.onclick = null;
+                area.onmousedown = null;
+                area.onmousemove = null;
+                area.onmouseup = null;
+
                 // Update Banner Info
-                document.getElementById('level-select').value = index;
+                document.getElementById('level-select').value = safeIndex;
                 document.getElementById('level-badge').textContent = `Módulo ${this.currentModule} - Nível ${level.id}`;
                 document.getElementById('level-title').textContent = level.title;
                 document.getElementById('level-instruction').textContent = level.instruction;
@@ -610,7 +678,6 @@
                 this.startTimer();
 
                 // Clear Workspace & Render Level
-                const area = document.getElementById('interactive-area');
                 area.innerHTML = '';
                 level.render();
             }
@@ -632,7 +699,7 @@
                         this.unlockModule2();
                         sound.playFanfare();
                         if (typeof confetti === 'function') confetti({ particleCount: 120, spread: 80 });
-                        alert("🎉 PARABÉNS! Você concluiu o Módulo do Mouse! O Módulo 2 de DIGITAÇÃO foi desbloqueado!");
+                        this.showToast('PARABÉNS! Módulo 1 concluído! Módulo 2 de Digitação desbloqueado!', 'success');
                         this.switchToModule(2);
                     } else {
                         this.showCertificate();
@@ -670,12 +737,16 @@
                 const accuracy = totalAttempts > 0 ? Math.round((this.score / totalAttempts) * 100) : 100;
                 document.getElementById('accuracy-display').textContent = `${accuracy}%`;
 
-                const percentage = Math.min(100, Math.round((this.levelScore / this.requiredScore) * 100));
+                const percentage = this.requiredScore > 0 ? Math.min(100, Math.round((this.levelScore / this.requiredScore) * 100)) : 0;
                 document.getElementById('level-progress-bar').style.width = `${percentage}%`;
             }
 
             completeLevel() {
                 this.stopTimer();
+                if (this.movingInterval) {
+                    clearInterval(this.movingInterval);
+                    this.movingInterval = null;
+                }
                 sound.playFanfare();
 
                 if (typeof confetti === 'function') {
@@ -719,8 +790,8 @@
                 let posX = x - workspace.left;
                 let posY = y - workspace.top;
 
-                if (posX + 210 > workspace.width) posX = workspace.width - 220;
-                if (posY + 150 > workspace.height) posY = workspace.height - 160;
+                if (posX + 230 > workspace.width) posX = Math.max(10, workspace.width - 240);
+                if (posY + 180 > workspace.height) posY = Math.max(10, workspace.height - 190);
 
                 menu.style.left = `${posX}px`;
                 menu.style.top = `${posY}px`;
@@ -741,8 +812,11 @@
                 }
             }
 
-            // --- MODULE 1: MOUSE LEVEL RENDERING ---
+            // =========================================================================
+            // MODULE 1: MOUSE LEVELS (1 TO 19)
+            // =========================================================================
 
+            // Nível 1: Clique Simples
             renderMouseL1() {
                 const area = document.getElementById('interactive-area');
                 const btn = document.createElement('button');
@@ -761,19 +835,21 @@
                 area.appendChild(btn);
             }
 
+            // Nível 2: Clique Rápido / Múltiplo
             renderMouseL2() {
                 const area = document.getElementById('interactive-area');
+                area.className = 'w-full h-full min-h-[420px] relative';
                 area.onclick = (e) => { if (e.target === area) this.addError(); };
 
                 const spawn = () => {
                     area.innerHTML = '';
                     if (this.levelScore >= this.requiredScore) return;
                     const btn = document.createElement('button');
-                    btn.className = 'w-16 h-16 bg-amber-400 hover:bg-amber-500 text-amber-950 rounded-full shadow-md flex items-center justify-center font-bold absolute transform active:scale-90 transition cursor-pointer';
+                    btn.className = 'w-16 h-16 bg-amber-400 hover:bg-amber-500 text-amber-950 rounded-full shadow-md flex items-center justify-center font-bold absolute transform active:scale-90 transition cursor-pointer border-2 border-amber-600';
                     btn.innerHTML = `<i class="fa-solid fa-bullseye text-2xl"></i>`;
                     
-                    const maxX = area.clientWidth - 90;
-                    const maxY = area.clientHeight - 90;
+                    const maxX = Math.max(40, area.clientWidth - 90);
+                    const maxY = Math.max(40, area.clientHeight - 90);
                     btn.style.left = `${Math.max(20, Math.floor(Math.random() * maxX))}px`;
                     btn.style.top = `${Math.max(20, Math.floor(Math.random() * maxY))}px`;
 
@@ -783,13 +859,14 @@
                 spawn();
             }
 
+            // Nível 3: Duplo Clique
             renderMouseL3() {
                 const area = document.getElementById('interactive-area');
                 const spawnFolder = () => {
                     area.innerHTML = '';
                     if (this.levelScore >= this.requiredScore) return;
                     const folder = document.createElement('div');
-                    folder.className = 'flex flex-col items-center justify-center gap-2 p-5 bg-amber-50 border-2 border-dashed border-amber-300 rounded-2xl cursor-pointer hover:bg-amber-100 transition';
+                    folder.className = 'flex flex-col items-center justify-center gap-2 p-6 bg-amber-50 border-2 border-dashed border-amber-300 rounded-2xl cursor-pointer hover:bg-amber-100 transition';
                     folder.innerHTML = `<i class="fa-solid fa-folder text-amber-500 text-8xl drop-shadow"></i><span class="font-bold text-amber-900 text-lg">2 Cliques Rápidos para Abrir</span>`;
                     folder.ondblclick = () => { this.addHit(); spawnFolder(); };
                     area.appendChild(folder);
@@ -797,6 +874,7 @@
                 spawnFolder();
             }
 
+            // Nível 4: Botão Direito do Mouse
             renderMouseL4() {
                 const area = document.getElementById('interactive-area');
                 const spawnItem = () => {
@@ -817,20 +895,21 @@
                 spawnItem();
             }
 
+            // Nível 5: Arrastar e Soltar na Lixeira
             renderMouseL5() {
                 const area = document.getElementById('interactive-area');
-                area.className = 'w-full h-full relative flex items-center justify-around p-6';
+                area.className = 'w-full h-full min-h-[400px] relative flex flex-col sm:flex-row items-center justify-around p-6 gap-6';
                 const spawn = () => {
                     area.innerHTML = '';
                     if (this.levelScore >= this.requiredScore) return;
 
                     const file = document.createElement('div');
                     file.draggable = true;
-                    file.className = 'flex flex-col items-center justify-center p-4 bg-white border-2 border-indigo-400 rounded-2xl shadow-md cursor-grab active:cursor-grabbing hover:scale-105 transition';
-                    file.innerHTML = `<i class="fa-solid fa-file-lines text-indigo-500 text-5xl mb-1"></i><span class="font-bold text-xs text-slate-700">Arraste para Lixeira</span>`;
+                    file.className = 'flex flex-col items-center justify-center p-5 bg-white border-2 border-indigo-400 rounded-2xl shadow-md cursor-grab active:cursor-grabbing hover:scale-105 transition';
+                    file.innerHTML = `<i class="fa-solid fa-file-lines text-indigo-500 text-5xl mb-2"></i><span class="font-bold text-xs text-slate-700">Arraste para Lixeira</span>`;
 
                     const dropzone = document.createElement('div');
-                    dropzone.className = 'w-40 h-40 border-4 border-dashed border-rose-300 bg-rose-50 rounded-2xl flex flex-col items-center justify-center gap-2 text-rose-600 transition';
+                    dropzone.className = 'w-44 h-44 border-4 border-dashed border-rose-300 bg-rose-50 rounded-2xl flex flex-col items-center justify-center gap-2 text-rose-600 transition';
                     dropzone.innerHTML = `<i class="fa-solid fa-trash-can text-5xl"></i><span class="font-bold text-sm">Lixeira</span>`;
 
                     file.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/plain', 'trash'));
@@ -847,38 +926,72 @@
                 spawn();
             }
 
+            // Nível 6: Organizar Pastas por Categoria
             renderMouseL6() {
                 const area = document.getElementById('interactive-area');
-                area.className = 'w-full h-full relative';
+                area.className = 'w-full h-full min-h-[400px] flex flex-col justify-around items-center p-4 gap-6';
 
-                const scrollContainer = document.createElement('div');
-                scrollContainer.className = 'w-full h-full overflow-y-auto custom-scrollbar p-6 space-y-6 bg-slate-50 rounded-xl border border-slate-200';
+                const items = [
+                    { id: 'img', name: 'Foto_Férias.jpg', icon: 'fa-file-image', color: 'text-purple-600' },
+                    { id: 'doc', name: 'Redação.docx', icon: 'fa-file-word', color: 'text-blue-600' },
+                    { id: 'mus', name: 'Música_Aula.mp3', icon: 'fa-file-audio', color: 'text-emerald-600' }
+                ];
 
-                let contentHtml = `<div class="p-4 bg-indigo-50 text-indigo-700 font-bold rounded-xl text-center"><i class="fa-solid fa-arrow-down mr-2"></i> Role a roda do mouse para baixo!</div>`;
-                for (let i = 1; i <= 8; i++) {
-                    contentHtml += `<div class="p-4 bg-white rounded-xl border border-slate-200 text-slate-500 font-medium text-sm">Documento de treino #${i}... Continue rolando a roda.</div>`;
-                }
+                const folders = [
+                    { id: 'doc', label: 'Documentos', color: 'border-blue-400 bg-blue-50 text-blue-800' },
+                    { id: 'img', label: 'Imagens', color: 'border-purple-400 bg-purple-50 text-purple-800' },
+                    { id: 'mus', label: 'Músicas', color: 'border-emerald-400 bg-emerald-50 text-emerald-800' }
+                ];
 
-                scrollContainer.innerHTML = contentHtml;
+                const itemsRow = document.createElement('div');
+                itemsRow.className = 'flex flex-wrap justify-center gap-4';
 
-                const hiddenBtnContainer = document.createElement('div');
-                hiddenBtnContainer.className = 'p-6 bg-emerald-100 border-2 border-emerald-400 rounded-2xl text-center flex flex-col items-center gap-3 my-8';
-                hiddenBtnContainer.innerHTML = `
-                    <span class="font-bold text-emerald-900 text-base">Você encontrou o código oculto!</span>
-                    <button id="scroll-target-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl shadow cursor-pointer">
-                        <i class="fa-solid fa-check-circle mr-2"></i> Confirmar Leitura
-                    </button>
-                `;
+                items.forEach(item => {
+                    const card = document.createElement('div');
+                    card.id = `drag-item-${item.id}`;
+                    card.draggable = true;
+                    card.className = 'p-4 bg-white border-2 border-slate-300 rounded-2xl shadow-sm flex flex-col items-center gap-2 cursor-grab active:cursor-grabbing hover:scale-105 transition w-36';
+                    card.innerHTML = `<i class="fa-solid ${item.icon} ${item.color} text-4xl"></i><span class="text-xs font-bold text-slate-700 text-center">${item.name}</span>`;
+                    card.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.setData('text/plain', item.id);
+                    });
+                    itemsRow.appendChild(card);
+                });
 
-                scrollContainer.appendChild(hiddenBtnContainer);
-                area.appendChild(scrollContainer);
+                const foldersRow = document.createElement('div');
+                foldersRow.className = 'flex flex-wrap justify-center gap-5';
 
-                document.getElementById('scroll-target-btn').onclick = () => {
-                    this.addHit();
-                    if (this.levelScore < this.requiredScore) scrollContainer.scrollTop = 0;
-                };
+                folders.forEach(folder => {
+                    const box = document.createElement('div');
+                    box.className = `w-40 h-36 border-3 border-dashed ${folder.color} rounded-2xl flex flex-col items-center justify-center gap-2 transition p-3`;
+                    box.innerHTML = `<i class="fa-solid fa-folder-open text-4xl"></i><span class="font-bold text-sm">${folder.label}</span>`;
+
+                    box.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        box.classList.add('drag-over');
+                    });
+                    box.addEventListener('dragleave', () => box.classList.remove('drag-over'));
+                    box.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        box.classList.remove('drag-over');
+                        const draggedType = e.dataTransfer.getData('text/plain');
+                        if (draggedType === folder.id) {
+                            const draggedEl = document.getElementById(`drag-item-${draggedType}`);
+                            if (draggedEl) draggedEl.remove();
+                            this.addHit();
+                        } else {
+                            this.addError();
+                            this.showToast('Pasta incorreta! Observe o tipo do arquivo.', 'error');
+                        }
+                    });
+                    foldersRow.appendChild(box);
+                });
+
+                area.appendChild(itemsRow);
+                area.appendChild(foldersRow);
             }
 
+            // Nível 7: Clique com Botão do Meio (Scroll Click)
             renderMouseL7() {
                 const area = document.getElementById('interactive-area');
                 area.className = 'w-full h-full flex flex-col justify-center items-center gap-4';
@@ -896,7 +1009,7 @@
                     tab.innerHTML = `<i class="fa-solid fa-globe text-indigo-500"></i><span>Página Navegador #${i}</span><span class="text-xs bg-slate-300 rounded-full w-5 h-5 flex items-center justify-center">✕</span>`;
 
                     tab.addEventListener('mousedown', (e) => {
-                        if (e.button === 1) { // Middle click
+                        if (e.button === 1) {
                             e.preventDefault();
                             tab.remove();
                             this.addHit();
@@ -908,70 +1021,205 @@
                 }
             }
 
+            // Nível 8: Alvos em Movimento (Rebote nas bordas sem sair da tela)
             renderMouseL8() {
                 const area = document.getElementById('interactive-area');
+                area.className = 'w-full h-full min-h-[420px] relative overflow-hidden';
                 area.innerHTML = '';
 
+                const targetSize = 64;
+                const padding = 8;
                 const target = document.createElement('button');
-                target.className = 'w-16 h-16 bg-rose-500 hover:bg-rose-600 text-white rounded-full shadow-lg flex items-center justify-center font-bold absolute transition-all duration-300 cursor-pointer';
+                target.className = 'w-16 h-16 bg-rose-500 hover:bg-rose-600 text-white rounded-full shadow-lg flex items-center justify-center font-bold absolute cursor-pointer select-none border-4 border-rose-200';
                 target.innerHTML = `<i class="fa-solid fa-bullseye text-2xl"></i>`;
 
-                let posX = 40, posY = 40, dirX = 1, dirY = 1;
+                const getBounds = () => {
+                    const maxX = Math.max(padding, area.clientWidth - targetSize - padding);
+                    const maxY = Math.max(padding, area.clientHeight - targetSize - padding);
+                    return { minX: padding, maxX, minY: padding, maxY };
+                };
+
+                let bounds = getBounds();
+                let posX = Math.max(bounds.minX, Math.min(bounds.maxX, Math.random() * bounds.maxX));
+                let posY = Math.max(bounds.minY, Math.min(bounds.maxY, Math.random() * bounds.maxY));
+                let vx = 4.2 * (Math.random() < 0.5 ? 1 : -1);
+                let vy = 4.2 * (Math.random() < 0.5 ? 1 : -1);
+
+                target.style.left = `${posX}px`;
+                target.style.top = `${posY}px`;
 
                 this.movingInterval = setInterval(() => {
-                    const maxX = area.clientWidth - 80;
-                    const maxY = area.clientHeight - 80;
-                    posX += 8 * dirX;
-                    posY += 8 * dirY;
-                    if (posX <= 10 || posX >= maxX) dirX *= -1;
-                    if (posY <= 10 || posY >= maxY) dirY *= -1;
+                    bounds = getBounds();
+                    posX += vx;
+                    posY += vy;
+
+                    if (posX <= bounds.minX) {
+                        posX = bounds.minX;
+                        vx = Math.abs(vx);
+                    } else if (posX >= bounds.maxX) {
+                        posX = bounds.maxX;
+                        vx = -Math.abs(vx);
+                    }
+
+                    if (posY <= bounds.minY) {
+                        posY = bounds.minY;
+                        vy = Math.abs(vy);
+                    } else if (posY >= bounds.maxY) {
+                        posY = bounds.maxY;
+                        vy = -Math.abs(vy);
+                    }
+
                     target.style.left = `${posX}px`;
                     target.style.top = `${posY}px`;
-                }, 30);
+                }, 20);
 
                 target.onclick = (e) => {
                     e.stopPropagation();
                     this.addHit();
-                    posX = Math.random() * (area.clientWidth - 100);
-                    posY = Math.random() * (area.clientHeight - 100);
+                    bounds = getBounds();
+                    posX = bounds.minX + Math.random() * (bounds.maxX - bounds.minX);
+                    posY = bounds.minY + Math.random() * (bounds.maxY - bounds.minY);
+                    vx = Math.abs(vx) * (Math.random() < 0.5 ? 1 : -1);
+                    vy = Math.abs(vy) * (Math.random() < 0.5 ? 1 : -1);
+                    target.style.left = `${posX}px`;
+                    target.style.top = `${posY}px`;
                 };
                 area.appendChild(target);
             }
 
+            // Nível 9: Seleção Retangular por Arraste (8 ícones visíveis)
             renderMouseL9() {
                 const area = document.getElementById('interactive-area');
-                area.className = 'w-full h-full relative select-none bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden';
+                area.className = 'w-full h-full flex-1 flex flex-col gap-3 select-none';
 
-                const dotsContainer = document.createElement('div');
-                dotsContainer.className = 'w-full h-full relative';
+                area.innerHTML = `
+                    <div class="w-full flex flex-wrap items-center justify-between gap-2 bg-indigo-50/80 border border-indigo-200 px-4 py-2.5 rounded-xl">
+                        <div class="flex items-center gap-2 text-xs md:text-sm font-semibold text-indigo-900">
+                            <i class="fa-solid fa-object-group text-indigo-600 text-base"></i>
+                            <span>Clique no fundo e arraste o retângulo azul sobre todos os 8 ícones:</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span id="l9-counter" class="bg-white border border-indigo-200 text-indigo-700 font-bold text-xs md:text-sm px-3 py-1 rounded-lg shadow-xs">
+                                Selecionados: 0 / 8
+                            </span>
+                            <button id="l9-clear-btn" type="button" class="bg-white hover:bg-rose-50 text-slate-700 hover:text-rose-600 border border-slate-300 hover:border-rose-300 font-bold text-xs px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 shadow-xs">
+                                <i class="fa-solid fa-eraser"></i> Limpar Seleção
+                            </button>
+                        </div>
+                    </div>
 
-                // Spawn dots
-                const dots = [];
-                for (let i = 0; i < 3; i++) {
-                    const dot = document.createElement('div');
-                    dot.className = 'w-8 h-8 bg-amber-400 border-2 border-amber-600 rounded-full absolute shadow flex items-center justify-center text-xs font-bold text-amber-950';
-                    dot.textContent = i + 1;
-                    dot.style.left = `${100 + i * 140}px`;
-                    dot.style.top = `${120 + (i % 2) * 80}px`;
-                    dotsContainer.appendChild(dot);
-                    dots.push(dot);
-                }
+                    <div id="l9-canvas-area" class="w-full flex-1 min-h-[380px] relative bg-slate-50 rounded-2xl border-2 border-dashed border-slate-300 overflow-hidden cursor-crosshair p-6 grid grid-cols-2 sm:grid-cols-4 gap-4 place-items-center">
+                    </div>
+                `;
 
-                // Selection Box
+                const canvasArea = document.getElementById('l9-canvas-area');
+                const counterEl = document.getElementById('l9-counter');
+                const clearBtn = document.getElementById('l9-clear-btn');
+
+                const itemsData = [
+                    { name: 'Trabalho.docx', icon: 'fa-file-word', color: 'text-blue-600' },
+                    { name: 'Planilha.xlsx', icon: 'fa-file-excel', color: 'text-emerald-600' },
+                    { name: 'Fotos_Aula', icon: 'fa-folder', color: 'text-amber-500' },
+                    { name: 'Apresentação.pptx', icon: 'fa-file-powerpoint', color: 'text-orange-500' },
+                    { name: 'Apostila.pdf', icon: 'fa-file-pdf', color: 'text-rose-600' },
+                    { name: 'Imagem_01.png', icon: 'fa-file-image', color: 'text-purple-600' },
+                    { name: 'Músicas', icon: 'fa-folder-open', color: 'text-amber-500' },
+                    { name: 'Notas.txt', icon: 'fa-file-lines', color: 'text-slate-600' }
+                ];
+
+                const iconElements = [];
+
+                itemsData.forEach((item, idx) => {
+                    const card = document.createElement('div');
+                    card.dataset.index = idx;
+                    card.dataset.selected = 'false';
+                    card.className = 'l9-file-item w-28 h-28 bg-white border-2 border-slate-200 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-2 p-2 transition-all duration-150 pointer-events-none select-none';
+                    card.innerHTML = `
+                        <div class="relative">
+                            <i class="fa-solid ${item.icon} ${item.color} text-4xl drop-shadow-xs"></i>
+                            <span class="l9-check hidden absolute -top-1.5 -right-2.5 w-5 h-5 bg-emerald-500 text-white rounded-full text-[10px] flex items-center justify-center shadow">
+                                <i class="fa-solid fa-check"></i>
+                            </span>
+                        </div>
+                        <span class="text-xs font-bold text-slate-700 text-center truncate w-full px-1">${item.name}</span>
+                    `;
+                    canvasArea.appendChild(card);
+                    iconElements.push(card);
+                });
+
                 const selectionBox = document.createElement('div');
-                selectionBox.className = 'absolute border-2 border-blue-500 bg-blue-500/20 hidden pointer-events-none rounded';
+                selectionBox.className = 'absolute border-2 border-dashed border-blue-600 bg-blue-500/20 hidden pointer-events-none rounded-md z-20';
+                canvasArea.appendChild(selectionBox);
 
-                area.appendChild(dotsContainer);
-                area.appendChild(selectionBox);
+                let isDragging = false;
+                let startX = 0;
+                let startY = 0;
+                let completedTriggered = false;
 
-                let startX = 0, startY = 0, isDragging = false;
+                const rectsIntersect = (r1, r2) => {
+                    return !(r2.left > r1.right || r2.right < r1.left || r2.top > r1.bottom || r2.bottom < r1.top);
+                };
 
-                area.onmousedown = (e) => {
-                    if (e.button !== 0) return;
+                const updateCardVisuals = (card, isSelected, isHovering) => {
+                    const checkBadge = card.querySelector('.l9-check');
+                    if (isSelected) {
+                        card.className = 'l9-file-item w-28 h-28 bg-emerald-50 border-2 border-emerald-500 rounded-2xl shadow-md flex flex-col items-center justify-center gap-2 p-2 transition-all duration-150 pointer-events-none select-none scale-105';
+                        if (checkBadge) checkBadge.classList.remove('hidden');
+                    } else if (isHovering) {
+                        card.className = 'l9-file-item w-28 h-28 bg-blue-50 border-2 border-blue-500 rounded-2xl shadow-md flex flex-col items-center justify-center gap-2 p-2 transition-all duration-150 pointer-events-none select-none scale-105';
+                        if (checkBadge) checkBadge.classList.add('hidden');
+                    } else {
+                        card.className = 'l9-file-item w-28 h-28 bg-white border-2 border-slate-200 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-2 p-2 transition-all duration-150 pointer-events-none select-none';
+                        if (checkBadge) checkBadge.classList.add('hidden');
+                    }
+                };
+
+                const syncSelectionState = () => {
+                    const selectedCount = iconElements.filter(el => el.dataset.selected === 'true').length;
+                    counterEl.textContent = `Selecionados: ${selectedCount} / 8`;
+
+                    const diff = selectedCount - this.levelScore;
+                    if (diff > 0) {
+                        for (let i = 0; i < diff; i++) {
+                            if (this.levelScore < this.requiredScore) {
+                                this.addHit();
+                            }
+                        }
+                    } else {
+                        this.levelScore = selectedCount;
+                        this.updateProgressUI();
+                    }
+
+                    if (selectedCount === 8 && !completedTriggered) {
+                        completedTriggered = true;
+                        setTimeout(() => {
+                            if (this.currentModule === 1 && this.currentLevelIndex === 8) {
+                                this.hideModal();
+                                this.nextLevel();
+                            }
+                        }, 650);
+                    }
+                };
+
+                clearBtn.onclick = () => {
+                    completedTriggered = false;
+                    iconElements.forEach(card => {
+                        card.dataset.selected = 'false';
+                        updateCardVisuals(card, false, false);
+                    });
+                    this.levelScore = 0;
+                    counterEl.textContent = 'Selecionados: 0 / 8';
+                    this.updateProgressUI();
+                };
+
+                const onMouseDown = (e) => {
+                    if (e.button !== 0 || completedTriggered) return;
+                    e.preventDefault();
                     isDragging = true;
-                    const rect = area.getBoundingClientRect();
-                    startX = e.clientX - rect.left;
-                    startY = e.clientY - rect.top;
+
+                    const rect = canvasArea.getBoundingClientRect();
+                    startX = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+                    startY = Math.max(0, Math.min(rect.height, e.clientY - rect.top));
 
                     selectionBox.style.left = `${startX}px`;
                     selectionBox.style.top = `${startY}px`;
@@ -980,107 +1228,108 @@
                     selectionBox.classList.remove('hidden');
                 };
 
-                area.onmousemove = (e) => {
+                const onMouseMove = (e) => {
                     if (!isDragging) return;
-                    const rect = area.getBoundingClientRect();
-                    const currentX = e.clientX - rect.left;
-                    const currentY = e.clientY - rect.top;
+                    const rect = canvasArea.getBoundingClientRect();
+                    const currentX = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+                    const currentY = Math.max(0, Math.min(rect.height, e.clientY - rect.top));
 
-                    const width = Math.abs(currentX - startX);
-                    const height = Math.abs(currentY - startY);
                     const left = Math.min(startX, currentX);
                     const top = Math.min(startY, currentY);
+                    const width = Math.abs(currentX - startX);
+                    const height = Math.abs(currentY - startY);
 
                     selectionBox.style.left = `${left}px`;
                     selectionBox.style.top = `${top}px`;
                     selectionBox.style.width = `${width}px`;
                     selectionBox.style.height = `${height}px`;
-                };
-
-                area.onmouseup = () => {
-                    if (!isDragging) return;
-                    isDragging = false;
-                    selectionBox.classList.add('hidden');
 
                     const boxRect = selectionBox.getBoundingClientRect();
-                    let caught = 0;
-                    dots.forEach(dot => {
-                        const dRect = dot.getBoundingClientRect();
-                        if (
-                            dRect.left >= boxRect.left &&
-                            dRect.right <= boxRect.right &&
-                            dRect.top >= boxRect.top &&
-                            dRect.bottom <= boxRect.bottom
-                        ) {
-                            caught++;
-                        }
+                    iconElements.forEach(card => {
+                        const cardRect = card.getBoundingClientRect();
+                        const hit = width > 4 && height > 4 && rectsIntersect(boxRect, cardRect);
+                        updateCardVisuals(card, card.dataset.selected === 'true', hit);
                     });
+                };
 
-                    if (caught >= 3) {
-                        this.addHit();
-                        if (this.levelScore < this.requiredScore) {
-                            this.renderMouseL9();
+                const onMouseUp = () => {
+                    if (!isDragging) return;
+                    isDragging = false;
+
+                    const boxRect = selectionBox.getBoundingClientRect();
+                    const width = parseFloat(selectionBox.style.width || '0');
+                    const height = parseFloat(selectionBox.style.height || '0');
+
+                    let newlyCaught = 0;
+                    if (width > 5 && height > 5) {
+                        iconElements.forEach(card => {
+                            const cardRect = card.getBoundingClientRect();
+                            if (rectsIntersect(boxRect, cardRect)) {
+                                if (card.dataset.selected !== 'true') {
+                                    newlyCaught++;
+                                }
+                                card.dataset.selected = 'true';
+                            }
+                            updateCardVisuals(card, card.dataset.selected === 'true', false);
+                        });
+
+                        if (newlyCaught === 0) {
+                            this.addError();
                         }
                     } else {
-                        this.addError();
+                        iconElements.forEach(card => {
+                            updateCardVisuals(card, card.dataset.selected === 'true', false);
+                        });
                     }
+
+                    selectionBox.classList.add('hidden');
+                    syncSelectionState();
+                };
+
+                canvasArea.addEventListener('mousedown', onMouseDown);
+                window.addEventListener('mousemove', onMouseMove);
+                window.addEventListener('mouseup', onMouseUp);
+
+                this.levelCleanup = () => {
+                    window.removeEventListener('mousemove', onMouseMove);
+                    window.removeEventListener('mouseup', onMouseUp);
                 };
             }
 
+            // Nível 10: Rolagem Vertical (Scroll)
             renderMouseL10() {
                 const area = document.getElementById('interactive-area');
-                area.className = 'w-full h-full flex flex-col items-center justify-center p-4';
-                area.innerHTML = `
-                    <div class="text-center mb-2">
-                        <span class="text-xs font-bold text-slate-500 uppercase">Segure o clique do mouse e pinte 70% do quadro</span>
-                    </div>
-                    <canvas id="paint-canvas" width="500" height="260" class="bg-slate-100 border-2 border-dashed border-indigo-300 rounded-2xl shadow-inner"></canvas>
-                    <div class="w-full max-w-md bg-slate-200 h-4 rounded-full mt-3 overflow-hidden border border-slate-300">
-                        <div id="paint-progress" class="bg-indigo-600 h-full w-0 transition-all"></div>
-                    </div>
+                area.className = 'w-full h-full max-h-[420px] relative';
+
+                const scrollContainer = document.createElement('div');
+                scrollContainer.className = 'w-full h-[400px] overflow-y-auto custom-scrollbar p-6 space-y-6 bg-slate-50 rounded-xl border border-slate-200';
+
+                let contentHtml = `<div class="p-4 bg-indigo-50 text-indigo-700 font-bold rounded-xl text-center"><i class="fa-solid fa-arrow-down mr-2"></i> Role a roda do mouse para baixo até o final do documento!</div>`;
+                for (let i = 1; i <= 8; i++) {
+                    contentHtml += `<div class="p-4 bg-white rounded-xl border border-slate-200 text-slate-500 font-medium text-sm">Parágrafo de documento #${i}... Continue girando a roda do mouse para baixo.</div>`;
+                }
+
+                scrollContainer.innerHTML = contentHtml;
+
+                const hiddenBtnContainer = document.createElement('div');
+                hiddenBtnContainer.className = 'p-6 bg-emerald-100 border-2 border-emerald-400 rounded-2xl text-center flex flex-col items-center gap-3 my-8';
+                hiddenBtnContainer.innerHTML = `
+                    <span class="font-bold text-emerald-900 text-base">Você chegou ao final da página!</span>
+                    <button id="scroll-target-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl shadow cursor-pointer">
+                        <i class="fa-solid fa-check-circle mr-2"></i> Confirmar Leitura
+                    </button>
                 `;
 
-                const canvas = document.getElementById('paint-canvas');
-                const ctx = canvas.getContext('2d');
-                let isPainting = false;
-                let paintedPixels = 0;
+                scrollContainer.appendChild(hiddenBtnContainer);
+                area.appendChild(scrollContainer);
 
-                ctx.strokeStyle = '#4f46e5';
-                ctx.lineWidth = 24;
-                ctx.lineCap = 'round';
-
-                const getCanvasCoords = (e) => {
-                    const rect = canvas.getBoundingClientRect();
-                    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+                document.getElementById('scroll-target-btn').onclick = () => {
+                    this.addHit();
+                    if (this.levelScore < this.requiredScore) scrollContainer.scrollTop = 0;
                 };
-
-                canvas.onmousedown = (e) => {
-                    isPainting = true;
-                    const pos = getCanvasCoords(e);
-                    ctx.beginPath();
-                    ctx.moveTo(pos.x, pos.y);
-                };
-
-                canvas.onmousemove = (e) => {
-                    if (!isPainting) return;
-                    const pos = getCanvasCoords(e);
-                    ctx.lineTo(pos.x, pos.y);
-                    ctx.stroke();
-
-                    // Check coverage approximation
-                    paintedPixels += 1;
-                    const progress = Math.min(100, Math.round((paintedPixels / 350) * 100));
-                    document.getElementById('paint-progress').style.width = `${progress}%`;
-
-                    if (progress >= 70 && this.levelScore < this.requiredScore) {
-                        isPainting = false;
-                        this.addHit();
-                    }
-                };
-
-                canvas.onmouseup = () => isPainting = false;
             }
 
+            // Nível 11: Zoom com Scroll do Mouse
             renderMouseL11() {
                 const area = document.getElementById('interactive-area');
                 area.className = 'w-full h-full flex flex-col items-center justify-center p-6';
@@ -1091,13 +1340,13 @@
                         <i class="fa-solid fa-magnifying-glass-plus text-indigo-500 text-6xl"></i>
                         <div>
                             <h3 class="text-xl font-bold text-slate-800">Ajuste o Zoom em 100%</h3>
-                            <p class="text-xs text-slate-500 mt-1">Role a roda do mouse para cima no quadro.</p>
+                            <p class="text-xs text-slate-500 mt-1">Gire a roda do mouse para cima sobre este quadro.</p>
                         </div>
                         <div class="w-full bg-slate-100 rounded-full h-6 p-1 border border-slate-200 relative overflow-hidden">
                             <div id="zoom-fill" class="bg-indigo-600 h-full rounded-full transition-all duration-150" style="width: ${zoomValue}%"></div>
                             <span id="zoom-text" class="absolute inset-0 flex items-center justify-center text-xs font-bold text-slate-700">${zoomValue}%</span>
                         </div>
-                        <button id="confirm-zoom-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-xl shadow transition hidden">
+                        <button id="confirm-zoom-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-xl shadow transition hidden cursor-pointer">
                             Confirmar 100%
                         </button>
                     </div>
@@ -1130,10 +1379,35 @@
                 };
             }
 
+            // Nível 12: Precisão em Alvos Pequenos
             renderMouseL12() {
-                this.renderMouseL5(); // Reuses multi drag
+                const area = document.getElementById('interactive-area');
+                area.className = 'w-full h-full min-h-[420px] relative';
+                area.onclick = (e) => { if (e.target === area) this.addError(); };
+
+                const spawnSmallTarget = () => {
+                    area.innerHTML = '';
+                    if (this.levelScore >= this.requiredScore) return;
+                    const btn = document.createElement('button');
+                    btn.className = 'w-10 h-10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-md flex items-center justify-center font-bold absolute transform active:scale-90 transition cursor-pointer border-2 border-indigo-200';
+                    btn.innerHTML = `<i class="fa-solid fa-crosshairs text-sm"></i>`;
+                    
+                    const maxX = Math.max(30, area.clientWidth - 60);
+                    const maxY = Math.max(30, area.clientHeight - 60);
+                    btn.style.left = `${Math.max(20, Math.floor(Math.random() * maxX))}px`;
+                    btn.style.top = `${Math.max(20, Math.floor(Math.random() * maxY))}px`;
+
+                    btn.onclick = (e) => {
+                        e.stopPropagation();
+                        this.addHit();
+                        spawnSmallTarget();
+                    };
+                    area.appendChild(btn);
+                };
+                spawnSmallTarget();
             }
 
+            // Nível 13: Menu de Contexto Avançado (Copiar e Colar)
             renderMouseL13() {
                 const area = document.getElementById('interactive-area');
                 area.className = 'w-full h-full flex flex-col md:flex-row items-center justify-around p-6 gap-6';
@@ -1141,12 +1415,12 @@
                 let copied = false;
 
                 area.innerHTML = `
-                    <div id="source-file" class="p-6 bg-blue-50 border-2 border-blue-300 rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-blue-100 transition w-56">
+                    <div id="source-file" class="p-6 bg-blue-50 border-2 border-blue-300 rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-blue-100 transition w-60">
                         <i class="fa-solid fa-file-code text-blue-600 text-5xl"></i>
-                        <span class="font-bold text-xs text-blue-900">1º Clique Direito -> "Copiar"</span>
+                        <span class="font-bold text-xs text-blue-900 text-center">1º Clique Direito -> "Copiar"</span>
                     </div>
 
-                    <div id="target-folder" class="p-6 bg-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-emerald-100 transition w-56 min-h-[160px]">
+                    <div id="target-folder" class="p-6 bg-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-emerald-100 transition w-60 min-h-[160px]">
                         <i class="fa-solid fa-folder-plus text-emerald-500 text-5xl"></i>
                         <span class="font-bold text-xs text-emerald-900 text-center">2º Clique Direito Aqui -> "Colar"</span>
                     </div>
@@ -1169,7 +1443,8 @@
                     if (action === 'copiar' && this.activeContextMenuTarget === 'source') {
                         copied = true;
                         sound.playSuccess();
-                        source.classList.add('border-emerald-500');
+                        source.classList.add('border-emerald-500', 'bg-emerald-50');
+                        this.showToast('Arquivo copiado! Agora clique com o botão direito na pasta verde e escolha Colar.', 'info');
                     } else if (action === 'colar' && this.activeContextMenuTarget === 'target') {
                         if (copied) {
                             this.addHit();
@@ -1177,6 +1452,7 @@
                             if (this.levelScore < this.requiredScore) this.renderMouseL13();
                         } else {
                             this.addError();
+                            this.showToast('Você precisa copiar o arquivo azul primeiro!', 'error');
                         }
                     } else {
                         this.addError();
@@ -1184,9 +1460,10 @@
                 };
             }
 
+            // Nível 14: Encaixe de Precisão
             renderMouseL14() {
                 const area = document.getElementById('interactive-area');
-                area.className = 'w-full h-full relative flex items-center justify-between p-8';
+                area.className = 'w-full h-full min-h-[400px] relative flex flex-col sm:flex-row items-center justify-between p-8 gap-6';
 
                 const spawnPrecisionTask = () => {
                     area.innerHTML = '';
@@ -1215,43 +1492,835 @@
                 spawnPrecisionTask();
             }
 
+            // Nível 15: Alvo Errático (Muda direção, ângulo e velocidade aleatoriamente sem sair da tela)
             renderMouseL15() {
                 const area = document.getElementById('interactive-area');
-                const challenges = [
-                    { type: 'click', text: '1. Clique Simples no Botão', class: 'bg-blue-500 text-white p-5 rounded-2xl font-bold' },
-                    { type: 'dblclick', text: '2. Duplo Clique para Abrir', class: 'bg-amber-100 border border-amber-300 text-amber-900 p-5 rounded-2xl font-bold' },
-                    { type: 'context', text: '3. Botão Direito na Caixa', class: 'bg-indigo-100 border border-indigo-300 text-indigo-900 p-5 rounded-2xl font-bold' },
-                    { type: 'middle', text: '4. Clique na Roda do Mouse (Botão do Meio)', class: 'bg-purple-600 text-white p-5 rounded-2xl font-bold' }
-                ];
+                area.className = 'w-full h-full min-h-[420px] relative overflow-hidden';
+                area.innerHTML = '';
 
-                const current = challenges[this.levelScore % challenges.length];
+                const targetSize = 64;
+                const padding = 10;
+                const target = document.createElement('button');
+                target.className = 'w-16 h-16 bg-amber-500 hover:bg-amber-600 text-white rounded-full shadow-lg flex items-center justify-center font-bold absolute cursor-pointer select-none border-4 border-yellow-200';
+                target.innerHTML = `<i class="fa-solid fa-bolt text-2xl"></i>`;
+
+                const getBounds = () => {
+                    const maxX = Math.max(padding, area.clientWidth - targetSize - padding);
+                    const maxY = Math.max(padding, area.clientHeight - targetSize - padding);
+                    return { minX: padding, maxX, minY: padding, maxY };
+                };
+
+                let bounds = getBounds();
+                let posX = (bounds.minX + bounds.maxX) / 2;
+                let posY = (bounds.minY + bounds.maxY) / 2;
+                let vx = 4;
+                let vy = -3.5;
+                let ticksUntilChange = 25;
+
+                const pickErraticVelocity = () => {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 3.2 + Math.random() * 3.8; // Between 3.2 and 7.0 px/tick
+                    vx = Math.cos(angle) * speed;
+                    vy = Math.sin(angle) * speed;
+                    ticksUntilChange = 18 + Math.floor(Math.random() * 28);
+                };
+
+                pickErraticVelocity();
+                target.style.left = `${posX}px`;
+                target.style.top = `${posY}px`;
+
+                this.movingInterval = setInterval(() => {
+                    bounds = getBounds();
+                    ticksUntilChange--;
+                    if (ticksUntilChange <= 0) {
+                        pickErraticVelocity();
+                    }
+
+                    posX += vx;
+                    posY += vy;
+
+                    if (posX <= bounds.minX) {
+                        posX = bounds.minX;
+                        vx = Math.abs(vx);
+                    } else if (posX >= bounds.maxX) {
+                        posX = bounds.maxX;
+                        vx = -Math.abs(vx);
+                    }
+
+                    if (posY <= bounds.minY) {
+                        posY = bounds.minY;
+                        vy = Math.abs(vy);
+                    } else if (posY >= bounds.maxY) {
+                        posY = bounds.maxY;
+                        vy = -Math.abs(vy);
+                    }
+
+                    target.style.left = `${posX}px`;
+                    target.style.top = `${posY}px`;
+                }, 20);
+
+                target.onclick = (e) => {
+                    e.stopPropagation();
+                    this.addHit();
+                    bounds = getBounds();
+                    posX = bounds.minX + Math.random() * (bounds.maxX - bounds.minX);
+                    posY = bounds.minY + Math.random() * (bounds.maxY - bounds.minY);
+                    pickErraticVelocity();
+                    target.style.left = `${posX}px`;
+                    target.style.top = `${posY}px`;
+                };
+
+                area.appendChild(target);
+            }
+
+            // Nível 16: Caminho Longo por Arraste (Canvas Responsivo Proporcional em S)
+            renderMouseL16() {
+                const area = document.getElementById('interactive-area');
+                area.className = 'w-full h-full flex-1 flex flex-col gap-3 select-none';
+
                 area.innerHTML = `
-                    <div id="final-target" class="${current.class} shadow-lg cursor-pointer flex items-center justify-center gap-3 text-lg transition transform active:scale-95">
-                        <i class="fa-solid fa-star text-yellow-300 text-3xl"></i><span>${current.text}</span>
+                    <div class="w-full flex flex-wrap items-center justify-between gap-2 bg-indigo-50/90 border border-indigo-200 px-4 py-2.5 rounded-xl">
+                        <div class="flex items-center gap-2 text-xs md:text-sm font-semibold text-indigo-900">
+                            <i class="fa-solid fa-route text-indigo-600 text-base"></i>
+                            <span>Clique no disco azul <strong>INÍCIO</strong>, segure e arraste por toda a pista até a <strong>CHEGADA</strong>:</span>
+                        </div>
+                        <span id="l16-status" class="bg-white border border-indigo-200 text-indigo-700 font-bold text-xs px-3 py-1 rounded-lg shadow-xs">
+                            Aguardando início...
+                        </span>
+                    </div>
+
+                    <div id="l16-canvas-wrapper" class="w-full flex-1 min-h-[420px] h-[440px] relative bg-slate-50 rounded-2xl border-2 border-slate-200 overflow-hidden shadow-inner">
+                        <canvas id="l16-canvas" class="w-full h-full block"></canvas>
                     </div>
                 `;
 
-                const target = document.getElementById('final-target');
-                target.onclick = () => {
-                    if (current.type === 'click') this.addHit();
-                    else if (current.type !== 'dblclick' && current.type !== 'middle') this.addError();
-                };
-                target.ondblclick = () => { if (current.type === 'dblclick') this.addHit(); };
-                target.oncontextmenu = (e) => {
-                    e.preventDefault();
-                    if (current.type === 'context') this.addHit();
-                    else this.addError();
-                };
-                target.onmousedown = (e) => {
-                    if (e.button === 1) {
-                        e.preventDefault();
-                        if (current.type === 'middle') this.addHit();
-                        else this.addError();
+                const wrapper = document.getElementById('l16-canvas-wrapper');
+                const canvas = document.getElementById('l16-canvas');
+                const statusEl = document.getElementById('l16-status');
+                const ctx = canvas.getContext('2d');
+
+                let waypoints = [];
+                let trackWidth = 56;
+                let puckRadius = 22;
+                let puckPos = { x: 0, y: 0 };
+                let isDragging = false;
+                let completed = false;
+                let trailPoints = [];
+
+                // Calculate proportional S-curve waypoints inside safe margins
+                const computeLayout = () => {
+                    const rect = wrapper.getBoundingClientRect();
+                    const w = Math.max(300, Math.floor(rect.width));
+                    const h = Math.max(420, Math.floor(rect.height));
+
+                    canvas.width = w;
+                    canvas.height = h;
+
+                    const marginX = Math.max(54, Math.round(w * 0.08));
+                    const marginY = Math.max(54, Math.round(h * 0.13));
+                    const usableW = w - marginX * 2;
+                    const usableH = h - marginY * 2;
+
+                    trackWidth = Math.max(48, Math.min(62, Math.round(Math.min(w, h) * 0.12)));
+                    puckRadius = Math.max(18, Math.min(24, Math.round(trackWidth * 0.4)));
+
+                    // 6-point winding S-path spanning top-left -> top-right -> mid-right -> mid-left -> bottom-left -> bottom-right
+                    const y1 = marginY;
+                    const y2 = marginY + usableH * 0.5;
+                    const y3 = marginY + usableH;
+
+                    waypoints = [
+                        { x: marginX, y: y1 },
+                        { x: marginX + usableW, y: y1 },
+                        { x: marginX + usableW, y: y2 },
+                        { x: marginX, y: y2 },
+                        { x: marginX, y: y3 },
+                        { x: marginX + usableW, y: y3 }
+                    ];
+
+                    if (!isDragging && !completed) {
+                        puckPos = { x: waypoints[0].x, y: waypoints[0].y };
+                        trailPoints = [{ x: puckPos.x, y: puckPos.y }];
                     }
+                };
+
+                // Distance from point P to line segment AB
+                const distToSegment = (p, a, b) => {
+                    const l2 = (b.x - a.x) ** 2 + (b.y - a.y) ** 2;
+                    if (l2 === 0) return Math.hypot(p.x - a.x, p.y - a.y);
+                    let t = ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / l2;
+                    t = Math.max(0, Math.min(1, t));
+                    const projX = a.x + t * (b.x - a.x);
+                    const projY = a.y + t * (b.y - a.y);
+                    return Math.hypot(p.x - projX, p.y - projY);
+                };
+
+                const minDistanceToTrack = (p) => {
+                    let minD = Infinity;
+                    for (let i = 0; i < waypoints.length - 1; i++) {
+                        const d = distToSegment(p, waypoints[i], waypoints[i + 1]);
+                        if (d < minD) minD = d;
+                    }
+                    return minD;
+                };
+
+                const drawScene = () => {
+                    if (!waypoints.length) return;
+                    const w = canvas.width;
+                    const h = canvas.height;
+                    ctx.clearRect(0, 0, w, h);
+
+                    // Subtle background grid
+                    ctx.strokeStyle = '#e2e8f0';
+                    ctx.lineWidth = 1;
+                    for (let gx = 0; gx < w; gx += 32) {
+                        ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, h); ctx.stroke();
+                    }
+                    for (let gy = 0; gy < h; gy += 32) {
+                        ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(w, gy); ctx.stroke();
+                    }
+
+                    // Outer border of track
+                    ctx.save();
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.strokeStyle = '#94a3b8';
+                    ctx.lineWidth = trackWidth + 8;
+                    ctx.beginPath();
+                    ctx.moveTo(waypoints[0].x, waypoints[0].y);
+                    for (let i = 1; i < waypoints.length; i++) {
+                        ctx.lineTo(waypoints[i].x, waypoints[i].y);
+                    }
+                    ctx.stroke();
+
+                    // Inner road fill
+                    ctx.strokeStyle = '#e2e8f0';
+                    ctx.lineWidth = trackWidth;
+                    ctx.stroke();
+
+                    // Center dashed guide line
+                    ctx.strokeStyle = '#64748b';
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([10, 10]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.restore();
+
+                    // Green progress trail
+                    if (trailPoints.length > 1) {
+                        ctx.save();
+                        ctx.lineCap = 'round';
+                        ctx.lineJoin = 'round';
+                        ctx.strokeStyle = 'rgba(16, 185, 129, 0.45)';
+                        ctx.lineWidth = trackWidth * 0.65;
+                        ctx.beginPath();
+                        ctx.moveTo(trailPoints[0].x, trailPoints[0].y);
+                        for (let i = 1; i < trailPoints.length; i++) {
+                            ctx.lineTo(trailPoints[i].x, trailPoints[i].y);
+                        }
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+
+                    // Start Zone Marker
+                    const startPt = waypoints[0];
+                    ctx.fillStyle = '#dbeafe';
+                    ctx.beginPath();
+                    ctx.arc(startPt.x, startPt.y, puckRadius + 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#3b82f6';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#1e3a8a';
+                    ctx.font = 'bold 11px Fredoka, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('INÍCIO', startPt.x, startPt.y - puckRadius - 12);
+
+                    // Finish Zone Marker
+                    const endPt = waypoints[waypoints.length - 1];
+                    ctx.fillStyle = '#10b981';
+                    ctx.beginPath();
+                    ctx.arc(endPt.x, endPt.y, puckRadius + 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#047857';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+
+                    // Flag icon on Finish
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 16px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('🏁', endPt.x, endPt.y);
+
+                    ctx.fillStyle = '#065f46';
+                    ctx.font = 'bold 11px Fredoka, sans-serif';
+                    ctx.textBaseline = 'alphabetic';
+                    ctx.fillText('CHEGADA', endPt.x, endPt.y - puckRadius - 12);
+
+                    // Draggable Blue Puck
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(37, 99, 235, 0.4)';
+                    ctx.shadowBlur = 10;
+                    ctx.fillStyle = isDragging ? '#2563eb' : '#3b82f6';
+                    ctx.beginPath();
+                    ctx.arc(puckPos.x, puckPos.y, puckRadius, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 12px Fredoka, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('✥', puckPos.x, puckPos.y);
+                    ctx.restore();
+                };
+
+                const resetPuckWithWarning = (message) => {
+                    isDragging = false;
+                    puckPos = { x: waypoints[0].x, y: waypoints[0].y };
+                    trailPoints = [{ x: puckPos.x, y: puckPos.y }];
+                    statusEl.textContent = 'Voltou ao início! Tente novamente.';
+                    statusEl.className = 'bg-rose-50 border border-rose-300 text-rose-700 font-bold text-xs px-3 py-1 rounded-lg';
+                    this.addError();
+                    this.showToast(message, 'error');
+                    drawScene();
+                };
+
+                const getPointerPos = (e) => {
+                    const rect = canvas.getBoundingClientRect();
+                    return {
+                        x: (e.clientX - rect.left) * (canvas.width / rect.width),
+                        y: (e.clientY - rect.top) * (canvas.height / rect.height)
+                    };
+                };
+
+                const onPointerDown = (e) => {
+                    if (completed) return;
+                    if (e.button !== undefined && e.button !== 0) return;
+                    const pos = getPointerPos(e);
+                    const distToPuck = Math.hypot(pos.x - puckPos.x, pos.y - puckPos.y);
+
+                    // Generous grab radius
+                    if (distToPuck <= puckRadius + 16) {
+                        isDragging = true;
+                        trailPoints = [{ x: puckPos.x, y: puckPos.y }];
+                        statusEl.textContent = 'Arrastando... Não solte o botão!';
+                        statusEl.className = 'bg-blue-50 border border-blue-300 text-blue-700 font-bold text-xs px-3 py-1 rounded-lg';
+                        if (canvas.setPointerCapture && e.pointerId !== undefined) {
+                            try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+                        }
+                        drawScene();
+                    }
+                };
+
+                const onPointerMove = (e) => {
+                    if (!isDragging || completed) return;
+                    const pos = getPointerPos(e);
+
+                    // Clamp inside canvas bounds
+                    pos.x = Math.max(puckRadius, Math.min(canvas.width - puckRadius, pos.x));
+                    pos.y = Math.max(puckRadius, Math.min(canvas.height - puckRadius, pos.y));
+
+                    puckPos = pos;
+                    trailPoints.push({ x: pos.x, y: pos.y });
+
+                    // Check if user strayed outside the track tolerance
+                    const distFromTrack = minDistanceToTrack(pos);
+                    const maxAllowedOffset = trackWidth * 0.62;
+                    if (distFromTrack > maxAllowedOffset) {
+                        resetPuckWithWarning('Soltou ou saiu do caminho! Tente novamente.');
+                        return;
+                    }
+
+                    // Check if reached Finish zone
+                    const endPt = waypoints[waypoints.length - 1];
+                    const distToFinish = Math.hypot(pos.x - endPt.x, pos.y - endPt.y);
+                    if (distToFinish <= puckRadius + 14) {
+                        isDragging = false;
+                        completed = true;
+                        puckPos = { x: endPt.x, y: endPt.y };
+                        statusEl.textContent = 'Chegada alcançada com sucesso!';
+                        statusEl.className = 'bg-emerald-50 border border-emerald-300 text-emerald-700 font-bold text-xs px-3 py-1 rounded-lg';
+                        drawScene();
+                        this.addHit();
+                        setTimeout(() => {
+                            if (this.currentModule === 1 && this.currentLevelIndex === 15) {
+                                this.hideModal();
+                                this.nextLevel();
+                            }
+                        }, 700);
+                        return;
+                    }
+
+                    drawScene();
+                };
+
+                const onPointerUp = () => {
+                    if (!isDragging || completed) return;
+                    resetPuckWithWarning('Soltou ou saiu do caminho! Tente novamente.');
+                };
+
+                canvas.addEventListener('pointerdown', onPointerDown);
+                window.addEventListener('pointermove', onPointerMove);
+                window.addEventListener('pointerup', onPointerUp);
+
+                let resizeRaf = null;
+                const resizeObserver = new ResizeObserver(() => {
+                    if (resizeRaf) cancelAnimationFrame(resizeRaf);
+                    resizeRaf = requestAnimationFrame(() => {
+                        computeLayout();
+                        drawScene();
+                    });
+                });
+                resizeObserver.observe(wrapper);
+
+                computeLayout();
+                drawScene();
+
+                this.levelCleanup = () => {
+                    if (resizeRaf) cancelAnimationFrame(resizeRaf);
+                    resizeObserver.disconnect();
+                    window.removeEventListener('pointermove', onPointerMove);
+                    window.removeEventListener('pointerup', onPointerUp);
                 };
             }
 
-            // --- MODULE 2: TYPING LEVEL RENDERING & LOGIC ---
+            // Nível 17: Labirinto de Precisão por Arraste (Bater na parede ou soltar volta ao início)
+            renderMouseL17() {
+                const area = document.getElementById('interactive-area');
+                area.className = 'w-full h-full flex-1 flex flex-col gap-3 select-none';
+
+                area.innerHTML = `
+                    <div class="w-full flex flex-wrap items-center justify-between gap-2 bg-rose-50/90 border border-rose-200 px-4 py-2.5 rounded-xl">
+                        <div class="flex items-center gap-2 text-xs md:text-sm font-semibold text-rose-900">
+                            <i class="fa-solid fa-dungeon text-rose-600 text-base"></i>
+                            <span><strong>CUIDADO:</strong> Se encostar nas paredes escuras ou soltar o clique, a esfera volta para o início!</span>
+                        </div>
+                        <span id="l17-status" class="bg-white border border-rose-200 text-rose-700 font-bold text-xs px-3 py-1 rounded-lg">
+                            Clique na esfera azul para iniciar
+                        </span>
+                    </div>
+
+                    <div id="l17-wrapper" class="w-full flex-1 min-h-[420px] h-[440px] relative bg-slate-900 rounded-2xl border-2 border-slate-700 overflow-hidden shadow-inner">
+                        <canvas id="l17-canvas" class="w-full h-full block"></canvas>
+                    </div>
+                `;
+
+                const wrapper = document.getElementById('l17-wrapper');
+                const canvas = document.getElementById('l17-canvas');
+                const statusEl = document.getElementById('l17-status');
+                const ctx = canvas.getContext('2d');
+
+                let corridors = [];
+                let startZone = { x: 0, y: 0, r: 22 };
+                let endZone = { x: 0, y: 0, r: 24 };
+                let ball = { x: 0, y: 0, r: 14 };
+                let isDragging = false;
+                let completed = false;
+
+                // Define normalized maze corridors (each corridor is {x, y, w, h} in 0..1 coordinates)
+                const normalizedCorridors = [
+                    // Top horizontal corridor
+                    { x: 0.05, y: 0.08, w: 0.55, h: 0.14 },
+                    // Vertical drop 1
+                    { x: 0.48, y: 0.08, w: 0.12, h: 0.36 },
+                    // Left return corridor
+                    { x: 0.14, y: 0.32, w: 0.46, h: 0.13 },
+                    // Vertical drop 2
+                    { x: 0.14, y: 0.32, w: 0.12, h: 0.38 },
+                    // Long bottom horizontal corridor
+                    { x: 0.14, y: 0.58, w: 0.72, h: 0.13 },
+                    // Upward zig-zag on right
+                    { x: 0.74, y: 0.24, w: 0.12, h: 0.47 },
+                    // Final exit corridor to top-right
+                    { x: 0.74, y: 0.24, w: 0.21, h: 0.14 }
+                ];
+
+                const computeMaze = () => {
+                    const rect = wrapper.getBoundingClientRect();
+                    const w = Math.max(320, Math.floor(rect.width));
+                    const h = Math.max(420, Math.floor(rect.height));
+                    canvas.width = w;
+                    canvas.height = h;
+
+                    corridors = normalizedCorridors.map(c => ({
+                        x: Math.round(c.x * w),
+                        y: Math.round(c.y * h),
+                        w: Math.round(c.w * w),
+                        h: Math.round(c.h * h)
+                    }));
+
+                    const first = corridors[0];
+                    const last = corridors[corridors.length - 1];
+
+                    startZone = {
+                        x: first.x + Math.min(34, first.w * 0.2),
+                        y: first.y + first.h / 2,
+                        r: 20
+                    };
+
+                    endZone = {
+                        x: last.x + last.w - Math.min(30, last.w * 0.25),
+                        y: last.y + last.h / 2,
+                        r: 22
+                    };
+
+                    ball.r = Math.max(11, Math.min(15, Math.round(Math.min(w, h) * 0.03)));
+
+                    if (!isDragging && !completed) {
+                        ball.x = startZone.x;
+                        ball.y = startZone.y;
+                    }
+                };
+
+                const isBallInsideCorridors = (bx, by, br) => {
+                    // Check center and 8 perimeter points of the ball against union of corridors
+                    const checkPoints = [
+                        { x: bx, y: by },
+                        { x: bx + br * 0.75, y: by },
+                        { x: bx - br * 0.75, y: by },
+                        { x: bx, y: by + br * 0.75 },
+                        { x: bx, y: by - br * 0.75 },
+                        { x: bx + br * 0.55, y: by + br * 0.55 },
+                        { x: bx - br * 0.55, y: by + br * 0.55 },
+                        { x: bx + br * 0.55, y: by - br * 0.55 },
+                        { x: bx - br * 0.55, y: by - br * 0.55 }
+                    ];
+
+                    return checkPoints.every(pt =>
+                        corridors.some(c => pt.x >= c.x && pt.x <= c.x + c.w && pt.y >= c.y && pt.y <= c.y + c.h)
+                    );
+                };
+
+                const drawMaze = () => {
+                    const w = canvas.width;
+                    const h = canvas.height;
+                    ctx.clearRect(0, 0, w, h);
+
+                    // Dark wall background
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fillRect(0, 0, w, h);
+
+                    // Corridor outer glow border
+                    ctx.fillStyle = '#334155';
+                    corridors.forEach(c => {
+                        ctx.fillRect(c.x - 4, c.y - 4, c.w + 8, c.h + 8);
+                    });
+
+                    // Safe walkable corridor interior
+                    ctx.fillStyle = '#f8fafc';
+                    corridors.forEach(c => {
+                        ctx.fillRect(c.x, c.y, c.w, c.h);
+                    });
+
+                    // Start pad
+                    ctx.fillStyle = '#dbeafe';
+                    ctx.beginPath();
+                    ctx.arc(startZone.x, startZone.y, startZone.r, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#2563eb';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    // Exit pad
+                    ctx.fillStyle = '#10b981';
+                    ctx.beginPath();
+                    ctx.arc(endZone.x, endZone.y, endZone.r, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#047857';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 14px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('🏁', endZone.x, endZone.y);
+
+                    // Player Sphere
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(59, 130, 246, 0.6)';
+                    ctx.shadowBlur = 10;
+                    ctx.fillStyle = isDragging ? '#2563eb' : '#3b82f6';
+                    ctx.beginPath();
+                    ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.lineWidth = 2.5;
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.stroke();
+                    ctx.restore();
+                };
+
+                const resetMaze = (reason) => {
+                    isDragging = false;
+                    ball.x = startZone.x;
+                    ball.y = startZone.y;
+                    statusEl.textContent = 'Reiniciado! Tente novamente.';
+                    this.addError();
+                    this.showToast(reason, 'error');
+                    drawMaze();
+                };
+
+                const getPos = (e) => {
+                    const rect = canvas.getBoundingClientRect();
+                    return {
+                        x: (e.clientX - rect.left) * (canvas.width / rect.width),
+                        y: (e.clientY - rect.top) * (canvas.height / rect.height)
+                    };
+                };
+
+                const onPointerDown = (e) => {
+                    if (completed) return;
+                    if (e.button !== undefined && e.button !== 0) return;
+                    const pos = getPos(e);
+                    if (Math.hypot(pos.x - ball.x, pos.y - ball.y) <= ball.r + 16) {
+                        isDragging = true;
+                        statusEl.textContent = 'Navegando no labirinto...';
+                        if (canvas.setPointerCapture && e.pointerId !== undefined) {
+                            try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+                        }
+                        drawMaze();
+                    }
+                };
+
+                const onPointerMove = (e) => {
+                    if (!isDragging || completed) return;
+                    const pos = getPos(e);
+                    ball.x = pos.x;
+                    ball.y = pos.y;
+
+                    if (!isBallInsideCorridors(ball.x, ball.y, ball.r)) {
+                        resetMaze('Bateu na parede do labirinto! Voltando ao início.');
+                        return;
+                    }
+
+                    if (Math.hypot(ball.x - endZone.x, ball.y - endZone.y) <= endZone.r) {
+                        isDragging = false;
+                        completed = true;
+                        ball.x = endZone.x;
+                        ball.y = endZone.y;
+                        statusEl.textContent = 'Labirinto concluído!';
+                        drawMaze();
+                        this.addHit();
+                        setTimeout(() => {
+                            if (this.currentModule === 1 && this.currentLevelIndex === 16) {
+                                this.hideModal();
+                                this.nextLevel();
+                            }
+                        }, 700);
+                        return;
+                    }
+
+                    drawMaze();
+                };
+
+                const onPointerUp = () => {
+                    if (!isDragging || completed) return;
+                    resetMaze('Você soltou o botão do mouse antes da saída! Voltando ao início.');
+                };
+
+                canvas.addEventListener('pointerdown', onPointerDown);
+                window.addEventListener('pointermove', onPointerMove);
+                window.addEventListener('pointerup', onPointerUp);
+
+                let resizeRaf = null;
+                const resizeObserver = new ResizeObserver(() => {
+                    if (resizeRaf) cancelAnimationFrame(resizeRaf);
+                    resizeRaf = requestAnimationFrame(() => {
+                        computeMaze();
+                        drawMaze();
+                    });
+                });
+                resizeObserver.observe(wrapper);
+
+                computeMaze();
+                drawMaze();
+
+                this.levelCleanup = () => {
+                    if (resizeRaf) cancelAnimationFrame(resizeRaf);
+                    resizeObserver.disconnect();
+                    window.removeEventListener('pointermove', onPointerMove);
+                    window.removeEventListener('pointerup', onPointerUp);
+                };
+            }
+
+            // Nível 18: Desenhe seu Nome (Assinatura Livre)
+            renderMouseL18() {
+                const area = document.getElementById('interactive-area');
+                area.className = 'w-full h-full flex-1 flex flex-col gap-3 items-center justify-center';
+
+                area.innerHTML = `
+                    <div class="w-full flex flex-wrap items-center justify-between gap-2 bg-indigo-50 border border-indigo-200 px-4 py-2.5 rounded-xl">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-indigo-900">Cor do Pincel:</span>
+                            <button type="button" data-color="#1e3a8a" class="l18-color w-7 h-7 rounded-full bg-blue-900 border-2 border-white shadow cursor-pointer ring-2 ring-indigo-500"></button>
+                            <button type="button" data-color="#059669" class="l18-color w-7 h-7 rounded-full bg-emerald-600 border-2 border-white shadow cursor-pointer"></button>
+                            <button type="button" data-color="#dc2626" class="l18-color w-7 h-7 rounded-full bg-red-600 border-2 border-white shadow cursor-pointer"></button>
+                            <button type="button" data-color="#7c3aed" class="l18-color w-7 h-7 rounded-full bg-violet-600 border-2 border-white shadow cursor-pointer"></button>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <button id="l18-clear-btn" type="button" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs px-3 py-2 rounded-lg transition cursor-pointer">
+                                <i class="fa-solid fa-eraser mr-1"></i> Limpar Folha
+                            </button>
+                            <button id="l18-finish-btn" type="button" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-lg shadow transition cursor-pointer">
+                                <i class="fa-solid fa-check mr-1"></i> Concluir Assinatura
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="l18-wrapper" class="w-full flex-1 min-h-[360px] bg-white rounded-2xl border-2 border-dashed border-indigo-300 relative overflow-hidden shadow-inner">
+                        <div class="absolute bottom-8 left-8 right-8 border-b-2 border-slate-300 pointer-events-none flex justify-between text-xs text-slate-400 font-semibold">
+                            <span>Assine seu nome sobre a linha acima</span>
+                            <i class="fa-solid fa-pen-nib"></i>
+                        </div>
+                        <canvas id="l18-canvas" class="w-full h-full block cursor-crosshair"></canvas>
+                    </div>
+                `;
+
+                const wrapper = document.getElementById('l18-wrapper');
+                const canvas = document.getElementById('l18-canvas');
+                const ctx = canvas.getContext('2d');
+                let isDrawing = false;
+                let strokeCount = 0;
+                let brushColor = '#1e3a8a';
+
+                const resizeCanvas = () => {
+                    const rect = wrapper.getBoundingClientRect();
+                    canvas.width = Math.max(300, Math.floor(rect.width));
+                    canvas.height = Math.max(360, Math.floor(rect.height));
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.lineWidth = 5;
+                    ctx.strokeStyle = brushColor;
+                };
+
+                resizeCanvas();
+
+                document.querySelectorAll('.l18-color').forEach(btn => {
+                    btn.onclick = () => {
+                        document.querySelectorAll('.l18-color').forEach(b => b.classList.remove('ring-2', 'ring-indigo-500'));
+                        btn.classList.add('ring-2', 'ring-indigo-500');
+                        brushColor = btn.dataset.color;
+                        ctx.strokeStyle = brushColor;
+                    };
+                });
+
+                const getPos = (e) => {
+                    const rect = canvas.getBoundingClientRect();
+                    return {
+                        x: (e.clientX - rect.left) * (canvas.width / rect.width),
+                        y: (e.clientY - rect.top) * (canvas.height / rect.height)
+                    };
+                };
+
+                canvas.addEventListener('pointerdown', (e) => {
+                    if (e.button !== undefined && e.button !== 0) return;
+                    isDrawing = true;
+                    const pos = getPos(e);
+                    ctx.strokeStyle = brushColor;
+                    ctx.lineWidth = 5;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(pos.x, pos.y);
+                });
+
+                canvas.addEventListener('pointermove', (e) => {
+                    if (!isDrawing) return;
+                    const pos = getPos(e);
+                    ctx.lineTo(pos.x, pos.y);
+                    ctx.stroke();
+                    strokeCount++;
+                });
+
+                window.addEventListener('pointerup', () => {
+                    isDrawing = false;
+                });
+
+                document.getElementById('l18-clear-btn').onclick = () => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    strokeCount = 0;
+                };
+
+                document.getElementById('l18-finish-btn').onclick = () => {
+                    if (strokeCount < 25) {
+                        this.addError();
+                        this.showToast('Desenhe seu nome na folha antes de concluir!', 'error');
+                        return;
+                    }
+                    this.addHit();
+                };
+            }
+
+            // Nível 19: Desafio Final Misto do Mouse
+            renderMouseL19() {
+                const area = document.getElementById('interactive-area');
+                const challenges = [
+                    { type: 'click', text: '1. Dê um CLIQUE SIMPLES neste botão', class: 'bg-blue-600 text-white p-6 rounded-2xl font-bold' },
+                    { type: 'dblclick', text: '2. Dê um DUPLO CLIQUE rápido para abrir', class: 'bg-amber-100 border-2 border-amber-400 text-amber-950 p-6 rounded-2xl font-bold' },
+                    { type: 'context', text: '3. Clique com o BOTÃO DIREITO nesta caixa', class: 'bg-indigo-100 border-2 border-indigo-400 text-indigo-950 p-6 rounded-2xl font-bold' },
+                    { type: 'middle', text: '4. Aperte a RODA DO MOUSE (Botão do Meio)', class: 'bg-purple-600 text-white p-6 rounded-2xl font-bold' },
+                    { type: 'click', text: '5. Último CLIQUE SIMPLES para finalizar o Módulo 1!', class: 'bg-emerald-600 text-white p-6 rounded-2xl font-bold' }
+                ];
+
+                const renderStep = () => {
+                    if (this.levelScore >= this.requiredScore) return;
+                    const current = challenges[this.levelScore % challenges.length];
+                    area.innerHTML = `
+                        <div id="final-target" class="${current.class} shadow-lg cursor-pointer flex items-center justify-center gap-3 text-lg transition transform active:scale-95">
+                            <i class="fa-solid fa-star text-yellow-300 text-3xl"></i><span>${current.text}</span>
+                        </div>
+                    `;
+
+                    const target = document.getElementById('final-target');
+                    target.onclick = () => {
+                        if (current.type === 'click') {
+                            this.addHit();
+                            renderStep();
+                        } else if (current.type !== 'dblclick' && current.type !== 'middle') {
+                            this.addError();
+                        }
+                    };
+                    target.ondblclick = () => {
+                        if (current.type === 'dblclick') {
+                            this.addHit();
+                            renderStep();
+                        }
+                    };
+                    target.oncontextmenu = (e) => {
+                        e.preventDefault();
+                        if (current.type === 'context') {
+                            this.addHit();
+                            renderStep();
+                        } else {
+                            this.addError();
+                        }
+                    };
+                    target.onmousedown = (e) => {
+                        if (e.button === 1) {
+                            e.preventDefault();
+                            if (current.type === 'middle') {
+                                this.addHit();
+                                renderStep();
+                            } else {
+                                this.addError();
+                            }
+                        }
+                    };
+                };
+
+                renderStep();
+            }
+
+            // =========================================================================
+            // MODULE 2: TYPING LEVEL RENDERING & LOGIC (10 LEVELS)
+            // =========================================================================
 
             renderTypingLevel() {
                 const area = document.getElementById('interactive-area');
@@ -1263,11 +2332,10 @@
                 area.innerHTML = `
                     <!-- Target Text Display Box -->
                     <div class="w-full max-w-3xl bg-slate-950 text-white p-5 rounded-2xl shadow-lg border border-slate-800 mb-3 font-mono text-xl md:text-2xl tracking-widest flex flex-wrap gap-1 leading-relaxed justify-center items-center select-none" id="typing-text-box">
-                        <!-- Individual character spans built in JS -->
                     </div>
 
                     <!-- Virtual ABNT2 On-Screen Keyboard -->
-                    <div id="virtual-keyboard" class="w-full max-w-3xl bg-slate-200 p-3 rounded-2xl border border-slate-300 shadow-inner flex flex-col gap-1.5 text-xs font-bold text-slate-700 select-none">
+                    <div id="virtual-keyboard" class="w-full max-w-3xl bg-slate-200 p-3 rounded-2xl border border-slate-300 shadow-inner flex flex-col gap-1.5 text-xs font-bold text-slate-700 select-none overflow-x-auto">
                         <!-- Row 1 -->
                         <div class="flex gap-1 justify-center">
                             <div class="key bg-white px-2.5 py-2 rounded shadow-sm border border-slate-300 min-w-[32px] text-center" data-key="'">' "</div>
@@ -1330,7 +2398,6 @@
                     </div>
                 `;
 
-                // Render Char Spans
                 const textBox = document.getElementById('typing-text-box');
                 textBox.innerHTML = '';
 
@@ -1348,14 +2415,28 @@
             }
 
             highlightNextTargetKey(char) {
-                // Remove previous target highlight
                 document.querySelectorAll('.key-target').forEach(el => el.classList.remove('key-target'));
                 if (!char) return;
 
+                // Map accented Portuguese characters to base keys for visual guidance
+                const accentMap = {
+                    'á': 'a', 'à': 'a', 'ã': 'a', 'â': 'a',
+                    'é': 'e', 'ê': 'e',
+                    'í': 'i',
+                    'ó': 'o', 'õ': 'o', 'ô': 'o',
+                    'ú': 'u',
+                    '%': '5'
+                };
+
                 const lowerChar = char.toLowerCase();
-                const keyEl = document.querySelector(`.key[data-key="${lowerChar}"]`);
+                const mapped = accentMap[lowerChar] || lowerChar;
+                const keyEl = document.querySelector(`.key[data-key="${mapped}"]`);
                 if (keyEl) {
                     keyEl.classList.add('key-target');
+                }
+                if (char !== lowerChar) {
+                    const shiftEl = document.querySelector(`.key[data-key="shift"]`);
+                    if (shiftEl) shiftEl.classList.add('key-target');
                 }
             }
 
@@ -1369,8 +2450,7 @@
             }
 
             handleTypingKeyPress(e) {
-                // Ignore system modifier keys
-                if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab'].includes(e.key)) {
+                if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab', 'Dead'].includes(e.key)) {
                     if (e.key === 'Shift') this.highlightVirtualKey('shift', true);
                     return;
                 }
@@ -1381,6 +2461,8 @@
 
                 if (currentIndex >= targetText.length) return;
 
+                if (e.key === ' ') e.preventDefault();
+
                 const expectedChar = targetText[currentIndex];
                 const typedChar = e.key;
 
@@ -1390,7 +2472,6 @@
                     sound.playKeyTap();
                     this.typingTotalTypedChars++;
 
-                    // Mark current span as correct
                     const currentSpan = document.getElementById(`char-${currentIndex}`);
                     if (currentSpan) {
                         currentSpan.className = 'px-1 rounded font-mono text-emerald-400 font-bold bg-emerald-950/50';
@@ -1398,7 +2479,6 @@
 
                     this.addHit();
 
-                    // Advance cursor to next char
                     const nextIndex = currentIndex + 1;
                     if (nextIndex < targetText.length) {
                         const nextSpan = document.getElementById(`char-${nextIndex}`);

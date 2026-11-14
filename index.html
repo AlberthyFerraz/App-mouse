@@ -97,7 +97,7 @@
             <!-- Module Switchers -->
             <div class="flex items-center bg-indigo-800/60 p-1.5 rounded-2xl border border-indigo-500/30">
                 <button id="mod1-tab-btn" onclick="app.switchToModule(1)" class="px-4 py-2 rounded-xl font-bold text-xs md:text-sm transition flex items-center gap-2 bg-white text-indigo-900 shadow-sm cursor-pointer">
-                    <i class="fa-solid fa-computer-mouse text-amber-500"></i> Módulo 1: Mouse (19)
+                    <i class="fa-solid fa-computer-mouse text-amber-500"></i> Módulo 1: Mouse (20)
                 </button>
                 <button id="mod2-tab-btn" onclick="app.switchToModule(2)" class="px-4 py-2 rounded-xl font-bold text-xs md:text-sm transition flex items-center gap-2 text-indigo-200 hover:text-white relative opacity-70 cursor-pointer">
                     <i id="mod2-lock-icon" class="fa-solid fa-lock text-yellow-400"></i>
@@ -268,7 +268,7 @@
             <div class="my-6 p-6 bg-indigo-50/60 rounded-2xl border border-indigo-100 text-slate-700">
                 <p class="text-base md:text-lg font-medium">Parabéns! Você demonstrou excelente domínio das ferramentas essenciais da informática!</p>
                 <div class="flex flex-wrap justify-center gap-2 my-4 text-xs font-bold text-indigo-700">
-                    <span class="bg-white px-3 py-1.5 rounded-full border border-indigo-200">✓ Mouse: Cliques, Seleção e Labirinto</span>
+                    <span class="bg-white px-3 py-1.5 rounded-full border border-indigo-200">✓ Mouse: Cliques, Seleção de Texto e Labirinto</span>
                     <span class="bg-white px-3 py-1.5 rounded-full border border-indigo-200">✓ Mouse: Roda de Rolagem, Menus & Assinatura</span>
                     <span class="bg-white px-3 py-1.5 rounded-full border border-indigo-200">✓ Digitação: Posição de Mãos</span>
                     <span class="bg-white px-3 py-1.5 rounded-full border border-indigo-200">✓ Digitação: Acentuação e Velocidade</span>
@@ -436,7 +436,7 @@
                 // Typing stats
                 this.typingTotalTypedChars = 0;
 
-                // Module 1: Mouse Mastery (19 Levels)
+                // Module 1: Mouse Mastery (20 Levels)
                 this.mouseLevels = [
                     { id: 1, title: 'Clique Simples', instruction: 'Clique com o BOTÃO ESQUERDO no botão de alvo central.', icon: 'fa-hand-pointer', required: 3, render: () => this.renderMouseL1() },
                     { id: 2, title: 'Clique Rápido / Múltiplo', instruction: 'Clique nos alvos conforme surgirem rapidamente na tela.', icon: 'fa-bullseye', required: 5, render: () => this.renderMouseL2() },
@@ -455,8 +455,9 @@
                     { id: 15, title: 'Alvo Errático (Imprevisível)', instruction: 'Clique no alvo que muda de direção, ângulo e velocidade aleatoriamente na tela.', icon: 'fa-bolt', required: 5, render: () => this.renderMouseL15() },
                     { id: 16, title: 'Caminho Longo por Arraste', instruction: 'Clique e segure no disco azul (INÍCIO) e arraste por toda a pista até a CHEGADA sem sair ou soltar!', icon: 'fa-route', required: 1, render: () => this.renderMouseL16() },
                     { id: 17, title: 'Labirinto de Precisão por Arraste', instruction: 'Arraste a esfera até a saída verde sem encostar nas paredes e sem soltar o botão do mouse!', icon: 'fa-dungeon', required: 1, render: () => this.renderMouseL17() },
-                    { id: 18, title: 'Desenhe seu Nome (Assinatura Livre)', instruction: 'Segure o clique esquerdo na folha digital e desenhe seu nome completo. Depois clique em Concluir!', icon: 'fa-signature', required: 1, render: () => this.renderMouseL18() },
-                    { id: 19, title: 'Desafio Final Misto do Mouse', instruction: 'Siga a ação solicitada em cada desafio para concluir o Módulo 1!', icon: 'fa-award', required: 5, render: () => this.renderMouseL19() }
+                    { id: 18, title: 'Seleção de Texto com Mouse e Ctrl', instruction: 'Arraste o mouse para selecionar palavra, frase, parágrafo e use a tecla Ctrl para selecionar dois trechos separados!', icon: 'fa-i-cursor', required: 4, render: () => this.renderMouseL18() },
+                    { id: 19, title: 'Desenhe seu Nome (Assinatura Livre)', instruction: 'Segure o clique esquerdo na folha digital e desenhe seu nome completo. Depois clique em Concluir!', icon: 'fa-signature', required: 1, render: () => this.renderMouseL19() },
+                    { id: 20, title: 'Desafio Final Misto do Mouse', instruction: 'Siga a ação solicitada em cada desafio para concluir o Módulo 1!', icon: 'fa-award', required: 5, render: () => this.renderMouseL20() }
                 ];
 
                 // Module 2: Typing Mastery / Digitação (10 Levels)
@@ -518,7 +519,7 @@
             switchToModule(modNum) {
                 if (modNum === 2 && !this.module2Unlocked) {
                     sound.playError();
-                    this.showToast('O Módulo 2 (Digitação) só é liberado após concluir as 19 fases do Módulo 1!', 'error');
+                    this.showToast('O Módulo 2 (Digitação) só é liberado após concluir as 20 fases do Módulo 1!', 'error');
                     return;
                 }
 
@@ -1896,17 +1897,17 @@
                 area.className = 'w-full h-full flex-1 flex flex-col gap-3 select-none';
 
                 area.innerHTML = `
-                    <div class="w-full flex flex-wrap items-center justify-between gap-2 bg-rose-50/90 border border-rose-200 px-4 py-2.5 rounded-xl">
-                        <div class="flex items-center gap-2 text-xs md:text-sm font-semibold text-rose-900">
-                            <i class="fa-solid fa-dungeon text-rose-600 text-base"></i>
-                            <span><strong>CUIDADO:</strong> Se encostar nas paredes escuras ou soltar o clique, a esfera volta para o início!</span>
+                    <div class="w-full flex flex-wrap items-center justify-between gap-2 bg-indigo-50/90 border border-indigo-200 px-4 py-2.5 rounded-xl">
+                        <div class="flex items-center gap-2 text-xs md:text-sm font-semibold text-indigo-900">
+                            <i class="fa-solid fa-dungeon text-indigo-600 text-base"></i>
+                            <span>Clique na esfera azul, segure e leve até a <strong>SAÍDA VERDE</strong> sem encostar nas paredes escuras!</span>
                         </div>
-                        <span id="l17-status" class="bg-white border border-rose-200 text-rose-700 font-bold text-xs px-3 py-1 rounded-lg">
-                            Clique na esfera azul para iniciar
+                        <span id="l17-status" class="bg-white border border-indigo-200 text-indigo-700 font-bold text-xs px-3 py-1 rounded-lg shadow-xs">
+                            Aguardando início...
                         </span>
                     </div>
 
-                    <div id="l17-wrapper" class="w-full flex-1 min-h-[420px] h-[440px] relative bg-slate-900 rounded-2xl border-2 border-slate-700 overflow-hidden shadow-inner">
+                    <div id="l17-wrapper" class="w-full flex-1 min-h-[430px] h-[450px] relative bg-slate-900 rounded-2xl border-2 border-slate-700 overflow-hidden shadow-inner">
                         <canvas id="l17-canvas" class="w-full h-full block"></canvas>
                     </div>
                 `;
@@ -1916,85 +1917,78 @@
                 const statusEl = document.getElementById('l17-status');
                 const ctx = canvas.getContext('2d');
 
-                let corridors = [];
-                let startZone = { x: 0, y: 0, r: 22 };
-                let endZone = { x: 0, y: 0, r: 24 };
-                let ball = { x: 0, y: 0, r: 14 };
-                let isDragging = false;
-                let completed = false;
-
-                // Define normalized maze corridors (each corridor is {x, y, w, h} in 0..1 coordinates)
-                const normalizedCorridors = [
-                    // Top horizontal corridor
-                    { x: 0.05, y: 0.08, w: 0.55, h: 0.14 },
-                    // Vertical drop 1
-                    { x: 0.48, y: 0.08, w: 0.12, h: 0.36 },
-                    // Left return corridor
-                    { x: 0.14, y: 0.32, w: 0.46, h: 0.13 },
-                    // Vertical drop 2
-                    { x: 0.14, y: 0.32, w: 0.12, h: 0.38 },
-                    // Long bottom horizontal corridor
-                    { x: 0.14, y: 0.58, w: 0.72, h: 0.13 },
-                    // Upward zig-zag on right
-                    { x: 0.74, y: 0.24, w: 0.12, h: 0.47 },
-                    // Final exit corridor to top-right
-                    { x: 0.74, y: 0.24, w: 0.21, h: 0.14 }
+                // Normalized maze grid (1 = Wall, 0 = Corridor, 2 = Start, 3 = Exit)
+                const grid = [
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                    [1, 2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1],
+                    [1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+                    [1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 3, 1],
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
                 ];
 
-                const computeMaze = () => {
+                const rows = grid.length;
+                const cols = grid[0].length;
+                let cellW = 40;
+                let cellH = 40;
+                let startCenter = { x: 0, y: 0 };
+                let exitRect = { x: 0, y: 0, w: 0, h: 0 };
+                let ballRadius = 11;
+                let ballPos = { x: 0, y: 0 };
+                let isDragging = false;
+                let completed = false;
+                let pathTrail = [];
+
+                const computeMazeLayout = () => {
                     const rect = wrapper.getBoundingClientRect();
                     const w = Math.max(320, Math.floor(rect.width));
-                    const h = Math.max(420, Math.floor(rect.height));
+                    const h = Math.max(430, Math.floor(rect.height));
                     canvas.width = w;
                     canvas.height = h;
 
-                    corridors = normalizedCorridors.map(c => ({
-                        x: Math.round(c.x * w),
-                        y: Math.round(c.y * h),
-                        w: Math.round(c.w * w),
-                        h: Math.round(c.h * h)
-                    }));
+                    cellW = w / cols;
+                    cellH = h / rows;
+                    ballRadius = Math.max(8, Math.min(13, Math.floor(Math.min(cellW, cellH) * 0.26)));
 
-                    const first = corridors[0];
-                    const last = corridors[corridors.length - 1];
-
-                    startZone = {
-                        x: first.x + Math.min(34, first.w * 0.2),
-                        y: first.y + first.h / 2,
-                        r: 20
-                    };
-
-                    endZone = {
-                        x: last.x + last.w - Math.min(30, last.w * 0.25),
-                        y: last.y + last.h / 2,
-                        r: 22
-                    };
-
-                    ball.r = Math.max(11, Math.min(15, Math.round(Math.min(w, h) * 0.03)));
+                    for (let r = 0; r < rows; r++) {
+                        for (let c = 0; c < cols; c++) {
+                            if (grid[r][c] === 2) {
+                                startCenter = { x: (c + 0.5) * cellW, y: (r + 0.5) * cellH };
+                            } else if (grid[r][c] === 3) {
+                                exitRect = { x: c * cellW, y: r * cellH, w: cellW, h: cellH };
+                            }
+                        }
+                    }
 
                     if (!isDragging && !completed) {
-                        ball.x = startZone.x;
-                        ball.y = startZone.y;
+                        ballPos = { x: startCenter.x, y: startCenter.y };
+                        pathTrail = [{ x: ballPos.x, y: ballPos.y }];
                     }
                 };
 
-                const isBallInsideCorridors = (bx, by, br) => {
-                    // Check center and 8 perimeter points of the ball against union of corridors
-                    const checkPoints = [
-                        { x: bx, y: by },
-                        { x: bx + br * 0.75, y: by },
-                        { x: bx - br * 0.75, y: by },
-                        { x: bx, y: by + br * 0.75 },
-                        { x: bx, y: by - br * 0.75 },
-                        { x: bx + br * 0.55, y: by + br * 0.55 },
-                        { x: bx - br * 0.55, y: by + br * 0.55 },
-                        { x: bx + br * 0.55, y: by - br * 0.55 },
-                        { x: bx - br * 0.55, y: by - br * 0.55 }
-                    ];
+                const circleIntersectsRect = (cx, cy, cr, rx, ry, rw, rh) => {
+                    const closestX = Math.max(rx, Math.min(cx, rx + rw));
+                    const closestY = Math.max(ry, Math.min(cy, ry + rh));
+                    const dx = cx - closestX;
+                    const dy = cy - closestY;
+                    return (dx * dx + dy * dy) < (cr * cr);
+                };
 
-                    return checkPoints.every(pt =>
-                        corridors.some(c => pt.x >= c.x && pt.x <= c.x + c.w && pt.y >= c.y && pt.y <= c.y + c.h)
-                    );
+                const hitsAnyWall = (cx, cy) => {
+                    const hitRadius = ballRadius * 0.85;
+                    for (let r = 0; r < rows; r++) {
+                        for (let c = 0; c < cols; c++) {
+                            if (grid[r][c] === 1) {
+                                if (circleIntersectsRect(cx, cy, hitRadius, c * cellW, r * cellH, cellW, cellH)) {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                    return false;
                 };
 
                 const drawMaze = () => {
@@ -2002,53 +1996,66 @@
                     const h = canvas.height;
                     ctx.clearRect(0, 0, w, h);
 
-                    // Dark wall background
-                    ctx.fillStyle = '#0f172a';
-                    ctx.fillRect(0, 0, w, h);
+                    for (let r = 0; r < rows; r++) {
+                        for (let c = 0; c < cols; c++) {
+                            const x = c * cellW;
+                            const y = r * cellH;
+                            const cell = grid[r][c];
 
-                    // Corridor outer glow border
-                    ctx.fillStyle = '#334155';
-                    corridors.forEach(c => {
-                        ctx.fillRect(c.x - 4, c.y - 4, c.w + 8, c.h + 8);
-                    });
+                            if (cell === 1) {
+                                ctx.fillStyle = '#1e293b';
+                                ctx.fillRect(x, y, cellW + 0.5, cellH + 0.5);
+                                ctx.strokeStyle = '#334155';
+                                ctx.lineWidth = 1;
+                                ctx.strokeRect(x, y, cellW, cellH);
+                            } else {
+                                ctx.fillStyle = '#f8fafc';
+                                ctx.fillRect(x, y, cellW + 0.5, cellH + 0.5);
+                            }
 
-                    // Safe walkable corridor interior
-                    ctx.fillStyle = '#f8fafc';
-                    corridors.forEach(c => {
-                        ctx.fillRect(c.x, c.y, c.w, c.h);
-                    });
+                            if (cell === 2) {
+                                ctx.fillStyle = '#dbeafe';
+                                ctx.fillRect(x, y, cellW, cellH);
+                                ctx.fillStyle = '#1d4ed8';
+                                ctx.font = 'bold 10px Fredoka, sans-serif';
+                                ctx.textAlign = 'center';
+                                ctx.fillText('INÍCIO', x + cellW / 2, y + cellH - 5);
+                            } else if (cell === 3) {
+                                ctx.fillStyle = '#10b981';
+                                ctx.fillRect(x, y, cellW, cellH);
+                                ctx.fillStyle = '#ffffff';
+                                ctx.font = 'bold 11px Fredoka, sans-serif';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillText('SAÍDA', x + cellW / 2, y + cellH / 2);
+                                ctx.textBaseline = 'alphabetic';
+                            }
+                        }
+                    }
 
-                    // Start pad
-                    ctx.fillStyle = '#dbeafe';
-                    ctx.beginPath();
-                    ctx.arc(startZone.x, startZone.y, startZone.r, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.strokeStyle = '#2563eb';
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
+                    // Draw player trail
+                    if (pathTrail.length > 1) {
+                        ctx.save();
+                        ctx.strokeStyle = 'rgba(59, 130, 246, 0.35)';
+                        ctx.lineWidth = ballRadius * 1.1;
+                        ctx.lineCap = 'round';
+                        ctx.lineJoin = 'round';
+                        ctx.beginPath();
+                        ctx.moveTo(pathTrail[0].x, pathTrail[0].y);
+                        for (let i = 1; i < pathTrail.length; i++) {
+                            ctx.lineTo(pathTrail[i].x, pathTrail[i].y);
+                        }
+                        ctx.stroke();
+                        ctx.restore();
+                    }
 
-                    // Exit pad
-                    ctx.fillStyle = '#10b981';
-                    ctx.beginPath();
-                    ctx.arc(endZone.x, endZone.y, endZone.r, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.strokeStyle = '#047857';
-                    ctx.lineWidth = 3;
-                    ctx.stroke();
-
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = 'bold 14px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('🏁', endZone.x, endZone.y);
-
-                    // Player Sphere
+                    // Draw draggable sphere
                     ctx.save();
-                    ctx.shadowColor = 'rgba(59, 130, 246, 0.6)';
-                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = 'rgba(37, 99, 235, 0.5)';
+                    ctx.shadowBlur = 8;
                     ctx.fillStyle = isDragging ? '#2563eb' : '#3b82f6';
                     ctx.beginPath();
-                    ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+                    ctx.arc(ballPos.x, ballPos.y, ballRadius, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.lineWidth = 2.5;
                     ctx.strokeStyle = '#ffffff';
@@ -2056,17 +2063,18 @@
                     ctx.restore();
                 };
 
-                const resetMaze = (reason) => {
+                const resetMazeRun = (msg) => {
                     isDragging = false;
-                    ball.x = startZone.x;
-                    ball.y = startZone.y;
-                    statusEl.textContent = 'Reiniciado! Tente novamente.';
+                    ballPos = { x: startCenter.x, y: startCenter.y };
+                    pathTrail = [{ x: ballPos.x, y: ballPos.y }];
+                    statusEl.textContent = 'Voltou ao início! Tente novamente.';
+                    statusEl.className = 'bg-rose-50 border border-rose-300 text-rose-700 font-bold text-xs px-3 py-1 rounded-lg';
                     this.addError();
-                    this.showToast(reason, 'error');
+                    this.showToast(msg, 'error');
                     drawMaze();
                 };
 
-                const getPos = (e) => {
+                const getPointerPos = (e) => {
                     const rect = canvas.getBoundingClientRect();
                     return {
                         x: (e.clientX - rect.left) * (canvas.width / rect.width),
@@ -2077,10 +2085,12 @@
                 const onPointerDown = (e) => {
                     if (completed) return;
                     if (e.button !== undefined && e.button !== 0) return;
-                    const pos = getPos(e);
-                    if (Math.hypot(pos.x - ball.x, pos.y - ball.y) <= ball.r + 16) {
+                    const pos = getPointerPos(e);
+                    if (Math.hypot(pos.x - ballPos.x, pos.y - ballPos.y) <= ballRadius + 16) {
                         isDragging = true;
-                        statusEl.textContent = 'Navegando no labirinto...';
+                        pathTrail = [{ x: ballPos.x, y: ballPos.y }];
+                        statusEl.textContent = 'Navegando no labirinto... Não encoste nas paredes!';
+                        statusEl.className = 'bg-blue-50 border border-blue-300 text-blue-700 font-bold text-xs px-3 py-1 rounded-lg';
                         if (canvas.setPointerCapture && e.pointerId !== undefined) {
                             try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
                         }
@@ -2090,21 +2100,23 @@
 
                 const onPointerMove = (e) => {
                     if (!isDragging || completed) return;
-                    const pos = getPos(e);
-                    ball.x = pos.x;
-                    ball.y = pos.y;
+                    const pos = getPointerPos(e);
+                    ballPos = pos;
+                    pathTrail.push({ x: pos.x, y: pos.y });
 
-                    if (!isBallInsideCorridors(ball.x, ball.y, ball.r)) {
-                        resetMaze('Bateu na parede do labirinto! Voltando ao início.');
+                    if (hitsAnyWall(pos.x, pos.y)) {
+                        resetMazeRun('Encostou na parede do labirinto! Voltou para o início.');
                         return;
                     }
 
-                    if (Math.hypot(ball.x - endZone.x, ball.y - endZone.y) <= endZone.r) {
+                    const exitCenterX = exitRect.x + exitRect.w / 2;
+                    const exitCenterY = exitRect.y + exitRect.h / 2;
+                    if (Math.hypot(pos.x - exitCenterX, pos.y - exitCenterY) <= Math.min(exitRect.w, exitRect.h) * 0.45) {
                         isDragging = false;
                         completed = true;
-                        ball.x = endZone.x;
-                        ball.y = endZone.y;
+                        ballPos = { x: exitCenterX, y: exitCenterY };
                         statusEl.textContent = 'Labirinto concluído!';
+                        statusEl.className = 'bg-emerald-50 border border-emerald-300 text-emerald-700 font-bold text-xs px-3 py-1 rounded-lg';
                         drawMaze();
                         this.addHit();
                         setTimeout(() => {
@@ -2121,7 +2133,7 @@
 
                 const onPointerUp = () => {
                     if (!isDragging || completed) return;
-                    resetMaze('Você soltou o botão do mouse antes da saída! Voltando ao início.');
+                    resetMazeRun('Você soltou o botão do mouse antes da saída! Voltou ao início.');
                 };
 
                 canvas.addEventListener('pointerdown', onPointerDown);
@@ -2132,13 +2144,13 @@
                 const resizeObserver = new ResizeObserver(() => {
                     if (resizeRaf) cancelAnimationFrame(resizeRaf);
                     resizeRaf = requestAnimationFrame(() => {
-                        computeMaze();
+                        computeMazeLayout();
                         drawMaze();
                     });
                 });
                 resizeObserver.observe(wrapper);
 
-                computeMaze();
+                computeMazeLayout();
                 drawMaze();
 
                 this.levelCleanup = () => {
@@ -2149,8 +2161,259 @@
                 };
             }
 
-            // Nível 18: Desenhe seu Nome (Assinatura Livre)
+            // Nível 18: Seleção de Texto com Mouse e Ctrl (4 Passos Progressivos)
             renderMouseL18() {
+                const area = document.getElementById('interactive-area');
+                area.className = 'w-full h-full flex-1 flex flex-col gap-4 items-center justify-between p-2';
+
+                let currentStep = 0; // 0: Palavra, 1: Frase, 2: Parágrafo, 3: Dupla Seleção com Ctrl
+                let ctrlSelectedFirst = false;
+                let ctrlSelectedSecond = false;
+                let completedAll = false;
+
+                const stepsConfig = [
+                    {
+                        badge: 'Passo 1 de 4 • Texto Pequeno (1 Palavra)',
+                        prompt: 'Arraste o mouse (ou dê duplo clique) para selecionar apenas a palavra destacada: "TECLADO"',
+                        targetText: 'TECLADO'
+                    },
+                    {
+                        badge: 'Passo 2 de 4 • Texto Médio (Uma Frase Inteira)',
+                        prompt: 'Clique no início e arraste o mouse até o ponto final para selecionar toda a frase destacada em amarelo.',
+                        targetText: 'O mouse facilita a navegação nas janelas do computador.'
+                    },
+                    {
+                        badge: 'Passo 3 de 4 • Texto Grande (Parágrafo Completo)',
+                        prompt: 'Clique antes da primeira palavra e arraste até o final para selecionar o parágrafo inteiro.',
+                        targetText: 'Dominar a seleção de texto permite copiar, recortar e formatar documentos rapidamente no dia a dia escolar e profissional. Pratique arrastar com firmeza do começo ao fim.'
+                    },
+                    {
+                        badge: 'Passo 4 de 4 • Seleção Múltipla com Mouse + Ctrl',
+                        prompt: 'Selecione o 1º trecho destacado. Depois SEGURE a tecla CTRL no teclado e arraste o mouse sobre o 2º trecho destacado!',
+                        target1: 'informática básica',
+                        target2: 'produtividade digital'
+                    }
+                ];
+
+                area.innerHTML = `
+                    <!-- Top Stepper & Prompt -->
+                    <div class="w-full max-w-3xl bg-indigo-50 border border-indigo-200 rounded-2xl p-4 flex flex-col gap-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span id="l18-step-badge" class="bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+                                Passo 1 de 4
+                            </span>
+                            <div class="flex items-center gap-1.5">
+                                <span id="l18-dot-0" class="w-3 h-3 rounded-full bg-indigo-600"></span>
+                                <span id="l18-dot-1" class="w-3 h-3 rounded-full bg-slate-300"></span>
+                                <span id="l18-dot-2" class="w-3 h-3 rounded-full bg-slate-300"></span>
+                                <span id="l18-dot-3" class="w-3 h-3 rounded-full bg-slate-300"></span>
+                            </div>
+                        </div>
+                        <p id="l18-step-prompt" class="text-sm md:text-base font-bold text-indigo-950"></p>
+                    </div>
+
+                    <!-- Simulated Document Editor Card -->
+                    <div class="w-full max-w-3xl bg-white border-2 border-slate-200 rounded-2xl shadow-sm p-6 md:p-8 flex-1 flex flex-col justify-center">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4 text-xs text-slate-400 font-semibold">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-file-word text-blue-600 text-base"></i> Documento_Aula_Informatica.docx</span>
+                            <span id="l18-ctrl-indicator" class="hidden bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-0.5 rounded-md font-bold">
+                                <i class="fa-solid fa-keyboard mr-1"></i> Segure CTRL + Arraste o Mouse
+                            </span>
+                        </div>
+                        <div id="l18-doc-body" class="text-slate-800 text-base md:text-lg leading-relaxed space-y-4 select-text cursor-text" style="user-select: text; -webkit-user-select: text;">
+                        </div>
+                    </div>
+
+                    <!-- Live Selection Feedback Bar -->
+                    <div class="w-full max-w-3xl bg-slate-900 text-slate-200 px-4 py-3 rounded-xl flex flex-wrap items-center justify-between gap-2 text-xs md:text-sm">
+                        <div class="flex items-center gap-2 truncate max-w-full">
+                            <span class="text-slate-400 font-bold uppercase text-xs shrink-0">Texto Selecionado:</span>
+                            <span id="l18-live-selection" class="font-mono text-emerald-400 truncate italic">Nenhum texto selecionado ainda...</span>
+                        </div>
+                        <button id="l18-verify-btn" type="button" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-1.5 rounded-lg text-xs transition cursor-pointer shrink-0">
+                            <i class="fa-solid fa-check mr-1"></i> Verificar Seleção
+                        </button>
+                    </div>
+                `;
+
+                const badgeEl = document.getElementById('l18-step-badge');
+                const promptEl = document.getElementById('l18-step-prompt');
+                const docBody = document.getElementById('l18-doc-body');
+                const liveSelEl = document.getElementById('l18-live-selection');
+                const ctrlIndicator = document.getElementById('l18-ctrl-indicator');
+                const verifyBtn = document.getElementById('l18-verify-btn');
+
+                const normalizeText = (str) => str.replace(/\s+/g, ' ').trim();
+
+                const clearBrowserSelection = () => {
+                    const sel = window.getSelection();
+                    if (sel && sel.removeAllRanges) {
+                        sel.removeAllRanges();
+                    }
+                };
+
+                const renderStepContent = () => {
+                    clearBrowserSelection();
+                    ctrlSelectedFirst = false;
+                    ctrlSelectedSecond = false;
+                    liveSelEl.textContent = 'Nenhum texto selecionado ainda...';
+
+                    const cfg = stepsConfig[currentStep];
+                    badgeEl.textContent = cfg.badge;
+                    promptEl.textContent = cfg.prompt;
+
+                    for (let i = 0; i < 4; i++) {
+                        const dot = document.getElementById(`l18-dot-${i}`);
+                        if (dot) {
+                            if (i < currentStep) dot.className = 'w-3 h-3 rounded-full bg-emerald-500';
+                            else if (i === currentStep) dot.className = 'w-3 h-3 rounded-full bg-indigo-600 ring-2 ring-indigo-300';
+                            else dot.className = 'w-3 h-3 rounded-full bg-slate-300';
+                        }
+                    }
+
+                    if (currentStep === 0) {
+                        ctrlIndicator.classList.add('hidden');
+                        docBody.innerHTML = `
+                            <p class="text-lg md:text-xl">
+                                Para digitar textos no computador usamos o <mark class="bg-amber-200 text-slate-900 px-1.5 py-0.5 rounded font-bold">TECLADO</mark> conectado à máquina.
+                            </p>
+                        `;
+                    } else if (currentStep === 1) {
+                        ctrlIndicator.classList.add('hidden');
+                        docBody.innerHTML = `
+                            <p>
+                                Na aula de hoje aprendemos os movimentos principais de cursor.
+                                <mark class="bg-amber-200 text-slate-900 px-1 py-0.5 rounded font-semibold">O mouse facilita a navegação nas janelas do computador.</mark>
+                                Com prática diária todos ganham agilidade.
+                            </p>
+                        `;
+                    } else if (currentStep === 2) {
+                        ctrlIndicator.classList.add('hidden');
+                        docBody.innerHTML = `
+                            <p class="p-3 bg-amber-50 border-l-4 border-amber-400 rounded-r-xl font-medium">
+                                Dominar a seleção de texto permite copiar, recortar e formatar documentos rapidamente no dia a dia escolar e profissional. Pratique arrastar com firmeza do começo ao fim.
+                            </p>
+                        `;
+                    } else if (currentStep === 3) {
+                        ctrlIndicator.classList.remove('hidden');
+                        docBody.innerHTML = `
+                            <p>
+                                1º Parágrafo: O curso de <span id="l18-ctrl-t1" class="bg-amber-200 text-slate-900 px-1.5 py-0.5 rounded font-bold transition-colors">informática básica</span> prepara os alunos para os desafios modernos.
+                            </p>
+                            <p>
+                                2º Parágrafo: Saber usar atalhos aumenta muito a <span id="l18-ctrl-t2" class="bg-amber-200 text-slate-900 px-1.5 py-0.5 rounded font-bold transition-colors">produtividade digital</span> no trabalho.
+                            </p>
+                            <div id="l18-ctrl-status" class="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-2 rounded-lg">
+                                Trecho 1: Pendente • Trecho 2: Pendente (Segure CTRL ao selecionar o segundo!)
+                            </div>
+                        `;
+                    }
+                };
+
+                const advanceStep = () => {
+                    if (completedAll) return;
+                    this.addHit();
+                    currentStep++;
+                    if (currentStep < stepsConfig.length) {
+                        setTimeout(() => renderStepContent(), 350);
+                    } else {
+                        completedAll = true;
+                        setTimeout(() => {
+                            if (this.currentModule === 1 && this.currentLevelIndex === 17) {
+                                this.hideModal();
+                                this.nextLevel();
+                            }
+                        }, 650);
+                    }
+                };
+
+                const evaluateSelection = (isCtrlHeld = false, isManualVerify = false) => {
+                    if (completedAll) return;
+                    const sel = window.getSelection();
+                    const rawText = sel ? sel.toString() : '';
+                    const cleanText = normalizeText(rawText);
+
+                    if (cleanText.length > 0) {
+                        liveSelEl.textContent = `"${cleanText}"`;
+                    }
+
+                    const cfg = stepsConfig[currentStep];
+
+                    if (currentStep < 3) {
+                        if (cleanText === cfg.targetText) {
+                            advanceStep();
+                        } else if (isManualVerify) {
+                            this.addError();
+                            this.showToast('Selecione exatamente o trecho destacado do início ao fim!', 'error');
+                        }
+                    } else {
+                        // Step 4: Dual selection using Mouse + Ctrl
+                        const t1El = document.getElementById('l18-ctrl-t1');
+                        const t2El = document.getElementById('l18-ctrl-t2');
+                        const statusBox = document.getElementById('l18-ctrl-status');
+
+                        const matchedFirst = cleanText.includes(cfg.target1);
+                        const matchedSecond = cleanText.includes(cfg.target2);
+
+                        if (matchedFirst && !ctrlSelectedFirst) {
+                            ctrlSelectedFirst = true;
+                            sound.playSuccess();
+                            if (t1El) t1El.className = 'bg-blue-600 text-white px-1.5 py-0.5 rounded font-bold shadow-xs';
+                        }
+
+                        if (matchedSecond) {
+                            if (ctrlSelectedFirst && (isCtrlHeld || matchedFirst)) {
+                                ctrlSelectedSecond = true;
+                                if (t2El) t2El.className = 'bg-blue-600 text-white px-1.5 py-0.5 rounded font-bold shadow-xs';
+                            } else if (!ctrlSelectedFirst) {
+                                // User selected second first; allow selecting first with Ctrl next
+                                ctrlSelectedSecond = true;
+                                sound.playSuccess();
+                                if (t2El) t2El.className = 'bg-blue-600 text-white px-1.5 py-0.5 rounded font-bold shadow-xs';
+                            } else if (!isCtrlHeld && isManualVerify) {
+                                this.addError();
+                                this.showToast('Segure a tecla CTRL enquanto arrasta o mouse no segundo trecho!', 'error');
+                            }
+                        }
+
+                        if (matchedFirst && ctrlSelectedSecond && !isCtrlHeld && !matchedSecond) {
+                            // Ensure Ctrl was held when adding the second piece
+                        }
+
+                        if (statusBox) {
+                            statusBox.textContent = `Trecho 1: ${ctrlSelectedFirst ? '✓ Selecionado' : 'Pendente'} • Trecho 2: ${ctrlSelectedSecond ? '✓ Selecionado' : 'Pendente'}`;
+                        }
+
+                        if (ctrlSelectedFirst && ctrlSelectedSecond) {
+                            liveSelEl.textContent = `"${cfg.target1}" + "${cfg.target2}"`;
+                            advanceStep();
+                        } else if (isManualVerify) {
+                            this.addError();
+                            this.showToast('Selecione o 1º trecho, depois segure CTRL e selecione o 2º trecho!', 'error');
+                        }
+                    }
+                };
+
+                const onDocMouseUp = (e) => {
+                    if (!docBody.contains(e.target) && e.target !== docBody) return;
+                    setTimeout(() => {
+                        evaluateSelection(e.ctrlKey || e.metaKey, false);
+                    }, 30);
+                };
+
+                docBody.addEventListener('mouseup', onDocMouseUp);
+                verifyBtn.onclick = () => evaluateSelection(false, true);
+
+                renderStepContent();
+
+                this.levelCleanup = () => {
+                    docBody.removeEventListener('mouseup', onDocMouseUp);
+                    clearBrowserSelection();
+                };
+            }
+
+            // Nível 19: Desenhe seu Nome (Assinatura Livre)
+            renderMouseL19() {
                 const area = document.getElementById('interactive-area');
                 area.className = 'w-full h-full flex-1 flex flex-col gap-3 items-center justify-center';
 
@@ -2158,33 +2421,33 @@
                     <div class="w-full flex flex-wrap items-center justify-between gap-2 bg-indigo-50 border border-indigo-200 px-4 py-2.5 rounded-xl">
                         <div class="flex items-center gap-2">
                             <span class="text-xs font-bold text-indigo-900">Cor do Pincel:</span>
-                            <button type="button" data-color="#1e3a8a" class="l18-color w-7 h-7 rounded-full bg-blue-900 border-2 border-white shadow cursor-pointer ring-2 ring-indigo-500"></button>
-                            <button type="button" data-color="#059669" class="l18-color w-7 h-7 rounded-full bg-emerald-600 border-2 border-white shadow cursor-pointer"></button>
-                            <button type="button" data-color="#dc2626" class="l18-color w-7 h-7 rounded-full bg-red-600 border-2 border-white shadow cursor-pointer"></button>
-                            <button type="button" data-color="#7c3aed" class="l18-color w-7 h-7 rounded-full bg-violet-600 border-2 border-white shadow cursor-pointer"></button>
+                            <button type="button" data-color="#1e3a8a" class="l19-color w-7 h-7 rounded-full bg-blue-900 border-2 border-white shadow cursor-pointer ring-2 ring-indigo-500"></button>
+                            <button type="button" data-color="#059669" class="l19-color w-7 h-7 rounded-full bg-emerald-600 border-2 border-white shadow cursor-pointer"></button>
+                            <button type="button" data-color="#dc2626" class="l19-color w-7 h-7 rounded-full bg-red-600 border-2 border-white shadow cursor-pointer"></button>
+                            <button type="button" data-color="#7c3aed" class="l19-color w-7 h-7 rounded-full bg-violet-600 border-2 border-white shadow cursor-pointer"></button>
                         </div>
 
                         <div class="flex items-center gap-2">
-                            <button id="l18-clear-btn" type="button" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs px-3 py-2 rounded-lg transition cursor-pointer">
+                            <button id="l19-clear-btn" type="button" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs px-3 py-2 rounded-lg transition cursor-pointer">
                                 <i class="fa-solid fa-eraser mr-1"></i> Limpar Folha
                             </button>
-                            <button id="l18-finish-btn" type="button" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-lg shadow transition cursor-pointer">
+                            <button id="l19-finish-btn" type="button" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-lg shadow transition cursor-pointer">
                                 <i class="fa-solid fa-check mr-1"></i> Concluir Assinatura
                             </button>
                         </div>
                     </div>
 
-                    <div id="l18-wrapper" class="w-full flex-1 min-h-[360px] bg-white rounded-2xl border-2 border-dashed border-indigo-300 relative overflow-hidden shadow-inner">
+                    <div id="l19-wrapper" class="w-full flex-1 min-h-[360px] bg-white rounded-2xl border-2 border-dashed border-indigo-300 relative overflow-hidden shadow-inner">
                         <div class="absolute bottom-8 left-8 right-8 border-b-2 border-slate-300 pointer-events-none flex justify-between text-xs text-slate-400 font-semibold">
                             <span>Assine seu nome sobre a linha acima</span>
                             <i class="fa-solid fa-pen-nib"></i>
                         </div>
-                        <canvas id="l18-canvas" class="w-full h-full block cursor-crosshair"></canvas>
+                        <canvas id="l19-canvas" class="w-full h-full block cursor-crosshair"></canvas>
                     </div>
                 `;
 
-                const wrapper = document.getElementById('l18-wrapper');
-                const canvas = document.getElementById('l18-canvas');
+                const wrapper = document.getElementById('l19-wrapper');
+                const canvas = document.getElementById('l19-canvas');
                 const ctx = canvas.getContext('2d');
                 let isDrawing = false;
                 let strokeCount = 0;
@@ -2202,9 +2465,9 @@
 
                 resizeCanvas();
 
-                document.querySelectorAll('.l18-color').forEach(btn => {
+                document.querySelectorAll('.l19-color').forEach(btn => {
                     btn.onclick = () => {
-                        document.querySelectorAll('.l18-color').forEach(b => b.classList.remove('ring-2', 'ring-indigo-500'));
+                        document.querySelectorAll('.l19-color').forEach(b => b.classList.remove('ring-2', 'ring-indigo-500'));
                         btn.classList.add('ring-2', 'ring-indigo-500');
                         brushColor = btn.dataset.color;
                         ctx.strokeStyle = brushColor;
@@ -2239,16 +2502,17 @@
                     strokeCount++;
                 });
 
-                window.addEventListener('pointerup', () => {
+                const onPointerUp = () => {
                     isDrawing = false;
-                });
+                };
+                window.addEventListener('pointerup', onPointerUp);
 
-                document.getElementById('l18-clear-btn').onclick = () => {
+                document.getElementById('l19-clear-btn').onclick = () => {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
                     strokeCount = 0;
                 };
 
-                document.getElementById('l18-finish-btn').onclick = () => {
+                document.getElementById('l19-finish-btn').onclick = () => {
                     if (strokeCount < 25) {
                         this.addError();
                         this.showToast('Desenhe seu nome na folha antes de concluir!', 'error');
@@ -2256,10 +2520,14 @@
                     }
                     this.addHit();
                 };
+
+                this.levelCleanup = () => {
+                    window.removeEventListener('pointerup', onPointerUp);
+                };
             }
 
-            // Nível 19: Desafio Final Misto do Mouse
-            renderMouseL19() {
+            // Nível 20: Desafio Final Misto do Mouse
+            renderMouseL20() {
                 const area = document.getElementById('interactive-area');
                 const challenges = [
                     { type: 'click', text: '1. Dê um CLIQUE SIMPLES neste botão', class: 'bg-blue-600 text-white p-6 rounded-2xl font-bold' },
